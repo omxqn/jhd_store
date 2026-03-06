@@ -1,0 +1,522 @@
+/* =====================================================
+   JIHAD STORE — Global Styles (Light Elegant Overhaul)
+   Inspired by Tulip-Lab & Minimalist Boutique Aesthetics
+   ===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "FF Wahm", system-ui, sans-serif;
+  background-color: var(--surface-2);
+  color: #1A1A1A;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('/bg-custom.png');
+  background-repeat: repeat;
+  background-position: top left;
+  z-index: -1;
+  pointer-events: none;
+  animation: bgFade 2s ease-out;
+}
+
+@keyframes bgFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+main {
+  animation: pageIn .8s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── CSS Variables ── */
+:root {
+  /* Colors */
+  --bg: #F9F1C8;
+  --surface: #F9F1C8;
+  --surface-2: #FDF9F0;
+  --surface-3: #F5EFEB;
+
+  --primary: #c62865;
+  /* JHD.LINE Red */
+  --secondary: #283593;
+  /* JHD.LINE Blue */
+
+  --text: #C62828;
+  --text-muted: #555555;
+  --text-faint: #999999;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-soft: rgba(0, 0, 0, 0.04);
+
+  --success: #1B5E20;
+  --danger: #B71C1C;
+  --warning: #F57C00;
+  --info: #0D47A1;
+
+  /* Shadows - Minimal & Soft */
+  --shadow-sm: 0 2px 4px rgba(198, 40, 40, 0.04);
+  --shadow-md: 0 8px 16px rgba(198, 40, 40, 0.06);
+  --shadow-lg: 0 16px 32px rgba(198, 40, 40, 0.08);
+  --shadow-primary: 0 4px 12px rgba(198, 40, 40, 0.15);
+
+  /* Layout */
+  --header-h: 72px;
+  --max-w: 1320px;
+
+  /* Fonts */
+  --ff-serif: 'Cormorant Garamond', serif;
+  --ff-sans: 'Outfit', sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ── Container ── */
+.container {
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1.75rem;
+  border-radius: 9999px;
+  /* Pill shape for elegance */
+  font-weight: 500;
+  font-size: .875rem;
+  transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
+  white-space: nowrap;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: var(--ff-sans);
+}
+
+.btnPrimary {
+  background: #1A1A1A;
+  color: #FFFFFF;
+  box-shadow: var(--shadow-sm);
+}
+
+.btnPrimary:hover {
+  background: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btnOutline {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+}
+
+.btnOutline:hover {
+  border-color: var(--text);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.btnGhost {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.btnGhost:hover {
+  color: var(--primary);
+  background: var(--surface-2);
+}
+
+.btnDanger {
+  background: rgba(183, 28, 28, 0.05);
+  color: var(--danger);
+  border: 1px solid rgba(183, 28, 28, 0.1);
+}
+
+.btnSm {
+  padding: .5rem 1.25rem;
+  font-size: .7rem;
+}
+
+.btnLg {
+  padding: 1rem 2.5rem;
+  font-size: .9rem;
+}
+
+.btnBlock {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.badgeSale {
+  background: #E53935;
+  color: #fff;
+}
+
+.badgeNew {
+  background: #2E7D32;
+  color: #fff;
+}
+
+.badgeOos {
+  background: #757575;
+  color: #fff;
+}
+
+/* ── Form ── */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.formLabel {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  width: 100%;
+  padding: .875rem 1.125rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: .875rem;
+  transition: all 200ms ease;
+  outline: none;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.08);
+}
+
+.formInput::placeholder {
+  color: var(--text-faint);
+}
+
+.formSelect {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555555' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* ── Progress Steps ── */
+.progressSteps {
+  display: flex;
+  align-items: flex-start;
+}
+
+.progressStep {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.progressStep:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--surface-3);
+  z-index: 0;
+}
+
+.progressStep.done::after {
+  background: var(--primary);
+}
+
+.stepDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-faint);
+  border: 1px solid var(--surface-3);
+  position: relative;
+  z-index: 1;
+  transition: all 300ms ease;
+}
+
+.progressStep.done .stepDot {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.progressStep.active .stepDot {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.stepLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-top: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+.progressStep.done .stepLabel {
+  color: var(--primary);
+}
+
+.progressStep.active .stepLabel {
+  color: var(--text);
+}
+
+/* ── Stars ── */
+.stars {
+  display: flex;
+  gap: 2px;
+  color: var(--primary);
+  font-size: .8rem;
+}
+
+/* ── Modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(25, 25, 25, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn .3s ease;
+}
+
+.modalBox {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+  animation: slideUp .4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 150ms ease;
+}
+
+.modalClose:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin-block: 1.5rem;
+}
+
+/* ── Typography & Utils ── */
+.sectionTitle {
+  font-family: var(--ff-serif);
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: var(--secondary);
+  line-height: 1.2;
+}
+
+.sectionTitle span {
+  color: var(--primary);
+  font-style: italic;
+}
+
+.textMuted {
+  color: var(--text-muted) !important;
+}
+
+.textFaint {
+  color: var(--text-faint) !important;
+}
+
+.textPrimary {
+  color: var(--primary) !important;
+}
+
+/* ── Utility ── */
+.textPrimary {
+  color: var(--primary) !important;
+}
+
+.textMuted {
+  color: var(--text-muted) !important;
+}
+
+.textFaint {
+  color: var(--text-faint) !important;
+}
+
+.textSuccess {
+  color: var(--success) !important;
+}
+
+.textDanger {
+  color: var(--danger) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pageEnter {
+  animation: pageFadeIn .5s ease forwards;
+}

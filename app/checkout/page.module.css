@@ -1,0 +1,336 @@
+.page {
+    padding-block: 4rem;
+    min-height: 100vh;
+    background: #FFFFFF;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 5rem;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .layout {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+}
+
+/* ── Step Indicator ── */
+.steps {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3.5rem;
+    flex-wrap: wrap;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.stepIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    font-weight: 800;
+    transition: all 300ms ease;
+}
+
+.stepIconPending {
+    background: var(--surface-2);
+    color: var(--text-faint);
+}
+
+.stepIconActive {
+    background: var(--secondary);
+    color: #FFFFFF;
+    box-shadow: 0 0 0 4px var(--bg);
+}
+
+.stepIconComplete {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.stepLabel {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    transition: color 300ms ease;
+}
+
+.stepLabelPending {
+    color: var(--text-faint);
+}
+
+.stepLabelActive {
+    color: var(--secondary);
+}
+
+.stepLabelComplete {
+    color: #2E7D32;
+}
+
+.stepLine {
+    width: 2rem;
+    height: 1px;
+    background: var(--border-soft);
+}
+
+/* ── Form Sections ── */
+.sectionCard {
+    background: #FFFFFF;
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+    animation: fadeIn 400ms ease;
+}
+
+.sectionTitle {
+    font-family: var(--ff-serif);
+    font-size: 1.5rem;
+    color: var(--secondary);
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.formFull {
+    grid-column: 1 / -1;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.inputLabel {
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+
+.guestNote {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    background: var(--surface-2);
+    border-radius: 12px;
+    font-size: .85rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-soft);
+    line-height: 1.5;
+}
+
+.guestNote a {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* ── OTP View ── */
+.otpCard {
+    text-align: center;
+    padding: 4rem 2.5rem;
+    border: 1px solid var(--primary-soft);
+    background: var(--bg);
+    border-radius: 24px;
+}
+
+.otpIcon {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.otpDesc {
+    color: var(--text-muted);
+    font-size: .95rem;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-inline: auto;
+}
+
+.otpInput {
+    font-size: 2rem;
+    letter-spacing: .5rem;
+    font-weight: 800;
+    text-align: center;
+    max-width: 280px;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+}
+
+/* ── Payment Section ── */
+.paymentGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.paymentOption {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transition: all 250ms ease;
+    background: #FFFFFF;
+    text-align: center;
+}
+
+.paymentOption:hover {
+    border-color: var(--secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.paymentOptionSelected {
+    border-color: var(--secondary);
+    background: var(--surface-2);
+    box-shadow: 0 0 0 1px var(--secondary);
+}
+
+.paymentLabel {
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+/* ── Right: Summary Sidebar ── */
+.summarySidebar {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: sticky;
+    top: 100px;
+}
+
+.summaryItem {
+    display: flex;
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.itemThumb {
+    width: 60px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #FFFFFF;
+    flex-shrink: 0;
+}
+
+.itemName {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--secondary);
+    margin-bottom: .25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.itemMeta {
+    font-size: .7rem;
+    color: var(--text-faint);
+}
+
+.itemPrice {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-left: auto;
+}
+
+.totals {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: .9rem;
+}
+
+.totalLabel {
+    color: var(--text-muted);
+}
+
+.totalVal {
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+.grandTotal {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.grandTotalLabel {
+    font-weight: 800;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: .9rem;
+}
+
+.grandTotalVal {
+    font-family: var(--ff-serif);
+    font-size: 2rem;
+    color: var(--secondary);
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+
+    .formGrid,
+    .paymentGrid {
+        grid-template-columns: 1fr;
+    }
+}

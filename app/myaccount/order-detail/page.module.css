@@ -1,0 +1,344 @@
+.page {
+    padding-top: 120px;
+    padding-bottom: 100px;
+    min-height: 100vh;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    gap: 1.5rem;
+}
+
+.loader {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(198, 40, 40, 0.1);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+}
+
+.backLink {
+    display: inline-block;
+    color: var(--text-faint);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    transition: color 300ms ease;
+}
+
+.backLink:hover {
+    color: var(--primary);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.idBadge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--secondary);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-family: var(--ff-serif);
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--secondary);
+}
+
+.title span {
+    color: var(--primary);
+    font-style: italic;
+}
+
+.invoiceBtn {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--secondary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 300ms ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.invoiceBtn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.section {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(198, 40, 40, 0.05);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.sectionTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* ── Tracker ── */
+.trackerGrid {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.trackerStep {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.iconBox {
+    width: 50px;
+    height: 50px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    z-index: 2;
+    transition: all 400ms ease;
+    opacity: 0.3;
+}
+
+.stepDone .iconBox {
+    opacity: 1;
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(198, 40, 40, 0.1);
+}
+
+.stepActive .iconBox {
+    transform: scale(1.1);
+    border-color: var(--primary);
+}
+
+.stepLabel {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-faint);
+}
+
+.stepDone .stepLabel {
+    color: var(--secondary);
+}
+
+.connector {
+    position: absolute;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.05);
+    width: 100%;
+    top: 25px;
+    left: 50%;
+    z-index: 1;
+}
+
+.trackerStep:last-child .connector {
+    display: none;
+}
+
+.stepDone .connector {
+    background: var(--primary);
+    opacity: 0.3;
+}
+
+.pulse {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    border-radius: 50%;
+    opacity: 0.1;
+    top: -5px;
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* ── Main Layout ── */
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 2rem;
+}
+
+.itemCard {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.itemImgWrap {
+    width: 80px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f7f7f7;
+}
+
+.itemImgWrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.itemName {
+    font-weight: 700;
+    color: var(--secondary);
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+
+.itemConfig {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.configRow {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.configRow span {
+    font-weight: 700;
+    color: var(--text-faint);
+}
+
+.stitchBadge {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: rgba(198, 40, 40, 0.05);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}
+
+.itemPriceSide {
+    text-align: right;
+}
+
+.itemQty {
+    font-size: 0.85rem;
+    color: var(--text-faint);
+    margin-bottom: 0.25rem;
+}
+
+.itemTotal {
+    font-weight: 700;
+    color: var(--secondary);
+}
+
+.summaryBox {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.totalRow {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px dashed rgba(0, 0, 0, 0.05);
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.shippingBox {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.shippingBox p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .trackerGrid {
+        overflow-x: auto;
+        padding-inline: 1rem;
+    }
+
+    .trackerStep {
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 600px) {
+    .itemCard {
+        grid-template-columns: 60px 1fr;
+    }
+
+    .itemImgWrap {
+        width: 60px;
+        height: 80px;
+    }
+
+    .itemPriceSide {
+        grid-column: 2;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+}
