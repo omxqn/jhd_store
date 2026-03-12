@@ -5,6 +5,8 @@ import { Footer } from "@/components/Footer";
 import AnimationWrapper from "@/components/AnimationWrapper";
 import { Toaster } from "react-hot-toast";
 import AuthProvider from "@/components/AuthProvider";
+import { GlobalLoader } from "@/components/GlobalLoader";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Jihad Store — Premium GCC Fashion",
@@ -16,13 +18,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <AuthProvider>
+          <Suspense fallback={null}>
+            <GlobalLoader />
+          </Suspense>
           <div style={{
             background: "var(--primary)",
             color: "#fff",
             padding: "clamp(4px, 1.5vw, 10px) 0",
             overflow: "hidden",
             whiteSpace: "nowrap",
-            fontSize: "clamp(0.6rem, 2vw, 0.9rem)",
+            fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)",
             fontWeight: 700,
             fontFamily: "var(--ff-serif)",
             letterSpacing: "0.5px",

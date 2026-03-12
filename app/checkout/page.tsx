@@ -24,7 +24,8 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
 
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const total = Math.max(0, subtotal - discount);
+    const shippingTotal = cart.length > 0 ? 2 : 0;
+    const total = Math.max(0, subtotal - discount + shippingTotal);
 
     const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
         setForm(p => ({ ...p, [k]: e.target.value }));
@@ -81,7 +82,7 @@ export default function CheckoutPage() {
         setLoading(false);
 
         if (res.ok) {
-            if (data.user) setAuthUser(data.user);
+            if (data.user) setAuthUser(data.user, data.token);
             setStep("payment");
             toast.success("Email verified & Account logged in ✅");
         } else {
@@ -91,23 +92,32 @@ export default function CheckoutPage() {
 
     const handleDetailsSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.name || !form.email || !form.city) { toast.error("Fill all required fields"); return; }
+        if (!form.name || !form.email || !form.phone || !form.city || !form.address) {
+            toast.error("Please fill all required fields, including phone and address");
+            return;
+        }
         if (authUser) { setStep("payment"); }
         else { setStep("verify-otp"); }
     };
 
     const handlePlaceOrder = async () => {
+        const token = useStore.getState().token;
         setStep("placing");
         setLoading(true);
         try {
             const res = await fetch("/api/orders", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
                     items: cart, subtotal, discount, total,
                     name: form.name, email: form.email, phone: form.phone,
                     address: form.address, city: form.city,
                     paymentMethod,
+                    voucherCode,
+                    shippingTotal,
                 }),
             });
             const data = await res.json();
@@ -180,16 +190,16 @@ export default function CheckoutPage() {
                                             <input className="formInput" type="email" value={form.email} onChange={f("email")} required placeholder="john@example.com" />
                                         </div>
                                         <div className={styles.inputGroup}>
-                                            <label className={styles.inputLabel}>Phone Number</label>
-                                            <input className="formInput" value={form.phone} onChange={f("phone")} placeholder="+968 1234 5678" />
+                                            <label className={styles.inputLabel}>Phone Number *</label>
+                                            <input className="formInput" value={form.phone} onChange={f("phone")} required placeholder="+968 1234 5678" />
                                         </div>
                                         <div className={styles.inputGroup}>
                                             <label className={styles.inputLabel}>City *</label>
                                             <input className="formInput" value={form.city} onChange={f("city")} required placeholder="Muscat" />
                                         </div>
                                         <div className={`${styles.inputGroup} ${styles.formFull}`}>
-                                            <label className={styles.inputLabel}>Shipping Address</label>
-                                            <input className="formInput" value={form.address} onChange={f("address")} placeholder="Bldg/Street/Area" />
+                                            <label className={styles.inputLabel}>Shipping Address *</label>
+                                            <input className="formInput" value={form.address} onChange={f("address")} required placeholder="Bldg/Street/Area" />
                                         </div>
                                     </div>
                                     {!authUser && (
@@ -258,10 +268,40 @@ export default function CheckoutPage() {
 
                                     <div className={styles.inputGroup} style={{ maxWidth: "400px" }}>
                                         <label className={styles.inputLabel}>Boutique Voucher</label>
-                                        <div style={{ display: "flex", gap: "1rem" }}>
-                                            <input className="formInput" placeholder="Enter Code" value={voucherCode} onChange={e => setVoucherCode(e.target.value)} />
-                                            <button type="button" className="btn btnOutline" onClick={applyVoucher}>Apply</button>
-                                        </div>
+                                        {discount > 0 ? (
+                                            <div style={{ 
+                                                display: "flex", 
+                                                justifyContent: "space-between", 
+                                                alignItems: "center",
+                                                padding: "0.75rem 1.25rem",
+                                                background: "rgba(215, 79, 144, 0.05)",
+                                                border: "1px dashed var(--admin-primary, var(--secondary))",
+                                                borderRadius: "12px",
+                                                color: "var(--admin-primary, var(--secondary))"
+                                            }}>
+                                                <div style={{ fontWeight: 800, letterSpacing: "1px" }}>
+                                                    APPLIED: {voucherCode.toUpperCase()}
+                                                </div>
+                                                <button 
+                                                    onClick={() => { setDiscount(0); setVoucherCode(""); }}
+                                                    style={{ 
+                                                        background: "none", 
+                                                        border: "none", 
+                                                        color: "var(--text-faint)", 
+                                                        cursor: "pointer", 
+                                                        fontSize: "0.75rem",
+                                                        textDecoration: "underline" 
+                                                    }}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: "flex", gap: "1rem" }}>
+                                                <input className="formInput" placeholder="Enter Code" value={voucherCode} onChange={e => setVoucherCode(e.target.value)} />
+                                                <button type="button" className="btn btnOutline" onClick={applyVoucher} disabled={loading}>Apply</button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -293,7 +333,13 @@ export default function CheckoutPage() {
                                     <img src={item.image} alt={item.name} className={styles.itemThumb} />
                                     <div>
                                         <div className={styles.itemName}>{item.name}</div>
-                                        <div className={styles.itemMeta}>Qty: {item.quantity} · {item.fabricType}</div>
+                                        <div className={styles.itemMeta}>
+                                            Qty: {item.quantity} 
+                                            {item.size && ` · Size: ${item.size}`}
+                                            {item.color && ` · Color: ${item.color}`}
+                                            {item.selectedOptions && Object.entries(item.selectedOptions).map(([k, v]) => ` · ${k}: ${v}`)}
+                                            {!item.fabricType.includes("N/A") && ` · ${item.fabricType}`}
+                                        </div>
                                     </div>
                                     <div className={styles.itemPrice}>{formatPrice(item.price * item.quantity, country)}</div>
                                 </div>
@@ -313,7 +359,7 @@ export default function CheckoutPage() {
                             )}
                             <div className={styles.totalRow}>
                                 <span className={styles.totalLabel}>Secure Shipping</span>
-                                <span className={styles.totalVal} style={{ color: "var(--success)" }}>Bespoke Calc.</span>
+                                <span className={styles.totalVal} style={{ color: "var(--success)" }}>{formatPrice(shippingTotal, country)}</span>
                             </div>
 
                             <div className={styles.grandTotal}>

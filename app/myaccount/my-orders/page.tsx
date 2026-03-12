@@ -29,14 +29,19 @@ export default function MyOrdersPage() {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            try {
-                const url = authUser
-                    ? "/api/orders"
-                    : `/api/orders?email=${encodeURIComponent(localStorage.getItem("guestEmail") || "")}`;
+            if (!authUser) {
+                setError("يرجى تسجيل الدخول لعرض طلباتك.");
+                setLoading(false);
+                return;
+            }
 
-                const res = await fetch(url);
+            const token = useStore.getState().token;
+            try {
+                const res = await fetch("/api/orders", {
+                    headers: token ? { "Authorization": `Bearer ${token}` } : {}
+                });
                 if (!res.ok) {
-                    if (res.status === 401) { setError("يرجى تسجيل الدخول لعرض طلباتك."); return; }
+                    if (res.status === 401) { setError("انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى."); return; }
                     throw new Error("Failed to fetch");
                 }
                 const data = await res.json();

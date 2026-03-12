@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import path from "path";
+import fs from "fs";
 
 const smtpPort = Number(process.env.SMTP_PORT) || 587; // Updated default to 587 (STARTTLS)
 
@@ -14,8 +16,19 @@ const transporter = nodemailer.createTransport({
         rejectUnauthorized: false,
         minVersion: "TLSv1.2",
     },
+    family: 4,
     connectionTimeout: 10000, // 10s
-});
+} as any);
+
+const headerImagePath = path.join(process.cwd(), "public", "email-header.png");
+const emailAttachments = [
+    {
+        filename: "email-header.png",
+        path: headerImagePath,
+        cid: "jhd-header",
+        contentDisposition: "inline" as const
+    }
+];
 
 export type OrderEmailData = {
     orderId: number | string;
@@ -34,55 +47,112 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     }
 
     const itemsHtml = data.items.map(item => `
-        <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">
-                <strong>${item.name}</strong><br/>
-                <small>${item.fabricType || ""}, ${item.neckline || ""}</small>
-            </td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${data.currency} ${(item.price * item.quantity).toFixed(2)}</td>
-        </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eeeeee;">
+                                    <strong style="font-size: 14px; color: #333;">${item.name}</strong><br>
+                                    <span style="font-size: 12px; color: #777;">${item.fabricType || ""}${item.neckline ? ", " + item.neckline : ""}</span>
+                                </td>
+                                <td align="center" style="border-bottom: 1px solid #eeeeee; font-size: 14px; color: #333;">${item.quantity}</td>
+                                <td align="left" style="border-bottom: 1px solid #eeeeee; font-size: 14px; color: #333;">${data.currency} ${(item.price * item.quantity).toFixed(2)}</td>
+                            </tr>
     `).join("");
 
-    const html = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 15px; overflow: hidden;">
-            <div style="background: #1A1A1A; color: #C62828; padding: 30px; text-align: center;">
-                <h1 style="margin: 0; letter-spacing: 2px;">JHD.LINE</h1>
-                <p style="color: #F9F1C8; margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">Premium Bespoke Fashion</p>
-            </div>
-            <div style="padding: 30px;">
-                <h2 style="color: #283593;">شكرًا لطلبك، ${data.customerName}!</h2>
-                <p>يسعدنا إبلاغك بأنه قد تم استلام طلبك رقم <strong>#${data.orderId}</strong> وهو قيد المراجعة حاليًا.</p>
-                
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                    <thead>
-                        <tr style="background: #f9f9f9;">
-                            <th style="padding: 10px; text-align: right;">المنتج</th>
-                            <th style="padding: 10px; text-align: center;">الكمية</th>
-                            <th style="padding: 10px; text-align: left;">المجموع</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" style="padding: 20px 10px 10px; text-align: right; font-weight: bold;">الإجمالي الكلي</td>
-                            <td style="padding: 20px 10px 10px; text-align: left; font-weight: bold; color: #C62828; font-size: 18px;">${data.currency} ${data.total.toFixed(2)}</td>
-                        </tr>
-                    </tfoot>
-                </table>
+    const orderDetailLink = `${process.env.NEXT_PUBLIC_URL || 'https://jhd-line.com'}/myaccount/order-detail?id=${data.orderId}`;
+    const invoiceLink = `${process.env.NEXT_PUBLIC_URL || 'https://jhd-line.com'}/api/admin/orders/${data.orderId}/invoice`;
 
-                <div style="background: #FDF9F0; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                    <h4 style="margin: 0 0 10px 0; color: #283593;">تتبع طلبك</h4>
-                    <p style="margin: 0; font-size: 14px; color: #555;">يمكنك تتبع حالة طلبك عبر حسابك الشخصي في المتجر في أي وقت.</p>
-                </div>
-            </div>
-            <div style="background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999;">
-                &copy; ${new Date().getFullYear()} JHD.LINE. جميع الحقوق محفوظة.<br/>
-                هذا البريد الإلكتروني مرسل آليًا، يرجى عدم الرد عليه.
-            </div>
-        </div>
+    const html = `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif; }
+    table { border-collapse: collapse; }
+    .btn { display: inline-block; background-color: #b83424; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; margin: 5px; }
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdf5ce; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; max-width: 600px; width: 100%;">
+                
+                <tr>
+                    <td align="center" style="background-color: transparent;">
+                        <img src="cid:jhd-header" alt="JHD Line Banner" width="100%" style="display: block; max-width: 100%; height: auto; border: 0; background-color: transparent;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding: 30px 30px 10px 30px;">
+                        
+                        <h2 style="color: #172370; font-size: 20px; margin-top: 0; text-align: right;">${data.customerName}! شكرًا لطلبك،</h2>
+                        
+                        <p style="color: #333333; font-size: 15px; line-height: 1.6; text-align: right;">
+                            يسعدنا إبلاغك بأنه قد تم استلام طلبك رقم <strong>#${data.orderId}</strong> وهو قيد المراجعة حاليًا.
+                        </p>
+
+                        <table width="100%" border="0" cellspacing="0" cellpadding="15" style="margin-top: 20px; text-align: right; border-bottom: 1px solid #eeeeee;">
+                            <tr style="background-color: #fafafa; font-weight: bold; font-size: 14px;">
+                                <td width="50%" style="border-bottom: 1px solid #eeeeee;">المنتج</td>
+                                <td width="20%" style="border-bottom: 1px solid #eeeeee;" align="center">الكمية</td>
+                                <td width="30%" style="border-bottom: 1px solid #eeeeee;" align="left">المجموع</td>
+                            </tr>
+                            ${itemsHtml}
+                        </table>
+
+                        <table width="100%" border="0" cellspacing="0" cellpadding="15">
+                            <tr>
+                                <td align="right" style="font-weight: bold; font-size: 16px;">الإجمالي الكلي</td>
+                                <td align="left" style="font-weight: bold; font-size: 18px; color: #b83424;">${data.currency} ${data.total.toFixed(2)}</td>
+                            </tr>
+                        </table>
+
+                        <div style="background-color: #faf8f0; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                            <h3 style="color: #172370; font-size: 16px; margin: 0 0 10px 0;">تتبع طلبك</h3>
+                            <p style="color: #555555; font-size: 14px; margin: 0; line-height: 1.5;">
+                                يمكنك تتبع حالة طلبك عبر حسابك الشخصي في المتجر في أي وقت.
+                            </p>
+                        </div>
+
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 30px; margin-bottom: 30px;">
+                            <tr>
+                                <td align="center">
+                                    <a href="${orderDetailLink}" style="display: block; width: 200px; background-color: #b83424; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 15px;">مشاهدة تفاصيل الطلب</a>
+                                    <a href="${invoiceLink}" style="display: block; width: 200px; background-color: #b83424; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; font-size: 16px;">تحميل الفاتوره</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="background-color: #b83424; padding: 15px;">
+                        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;">زيارة الموقع</a>
+                        <span style="color: #ffffff; margin: 0 10px;">|</span>
+                        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}/contact" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;">تواصل معنا</a>
+                    </td>
+                </tr>
+            </table>
+
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
+                <tr>
+                    <td align="center" style="padding: 20px; color: #b83424; font-size: 12px; font-weight: bold; line-height: 1.8;">
+                        جميع الحقوق محفوظة. ${new Date().getFullYear()} JHD.LINE ©<br>
+                        هذا البريد الإلكتروني مرسل آليًا، يرجى عدم الرد عليه.
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
     `;
 
     await transporter.sendMail({
@@ -90,6 +160,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
         to: data.customerEmail,
         subject: `تأكيد الطلب #${data.orderId} - JHD.LINE`,
         html,
+        attachments: emailAttachments,
     });
 }
 
@@ -106,26 +177,77 @@ export async function sendOrderStatusUpdateEmail(data: OrderEmailData) {
     const statusText = statusMap[data.status] || data.status;
 
     const html = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 15px; overflow: hidden;">
-            <div style="background: #1A1A1A; color: #C62828; padding: 30px; text-align: center;">
-                <h1 style="margin: 0; letter-spacing: 2px;">JHD.LINE</h1>
-            </div>
-            <div style="padding: 30px; text-align: center;">
-                <div style="font-size: 40px; margin-bottom: 20px;">🚚</div>
-                <h2 style="color: #283593;">تحديث حالة الطلب #${data.orderId}</h2>
-                <p style="font-size: 18px; color: #333;">أهلاً ${data.customerName}،</p>
-                <p>نود إبلاغك بأن حالة طلبك قد تغيرت إلى:</p>
-                <div style="display: inline-block; padding: 10px 25px; background: #E53935; color: white; border-radius: 50px; font-weight: bold; font-size: 20px; margin: 20px 0;">
-                    ${statusText}
-                </div>
-                <p style="color: #666;">شكراً لتسوقك معنا!</p>
-                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;"/>
-                <a href="${process.env.NEXT_PUBLIC_URL || 'https://jhd-line.com'}/myaccount/order-detail?id=${data.orderId}" 
-                   style="display: inline-block; padding: 12px 30px; background: #283593; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                   تتبع الطلب الآن
-                </a>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif; }
+    table { border-collapse: collapse; }
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdf5ce; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; max-width: 600px; width: 100%;">
+                
+                <tr>
+                    <td align="center" style="background-color: transparent;">
+                        <img src="cid:jhd-header" alt="JHD Line Banner" width="100%" style="display: block; max-width: 100%; height: auto; border: 0; background-color: transparent;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding: 30px 30px 20px 30px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 40px; margin-bottom: 20px;">🚚</div>
+                            <h2 style="color: #172370; font-size: 20px; margin-top: 0;">تحديث حالة الطلب #${data.orderId}</h2>
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6;">أهلاً ${data.customerName}،</p>
+                            <p style="color: #555555; font-size: 15px;">نود إبلاغك بأن حالة طلبك قد تغيرت إلى:</p>
+                            
+                            <div style="display: inline-block; padding: 10px 25px; background-color: #b83424; color: #ffffff; border-radius: 50px; font-weight: bold; font-size: 18px; margin: 20px 0;">
+                                ${statusText}
+                            </div>
+                            
+                            <p style="color: #666666; font-size: 14px; margin-top: 20px;">شكراً لتسوقك معنا!</p>
+                            
+                            <hr style="border: none; border-top: 1px solid #eeeeee; margin: 30px 0;">
+                            
+                            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}/myaccount/order-detail?id=${data.orderId}" 
+                               style="display: inline-block; padding: 12px 30px; background-color: #172370; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                               تتبع الطلب الآن
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td align="center" style="background-color: #b83424; padding: 15px;">
+                        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;">زيارة الموقع</a>
+                        <span style="color: #ffffff; margin: 0 10px;">|</span>
+                        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}/contact" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;">تواصل معنا</a>
+                    </td>
+                </tr>
+            </table>
+
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
+                <tr>
+                    <td align="center" style="padding: 20px; color: #b83424; font-size: 12px; font-weight: bold; line-height: 1.8;">
+                        جميع الحقوق محفوظة. ${new Date().getFullYear()} JHD.LINE ©<br>
+                        هذا البريد الإلكتروني مرسل آليًا، يرجى عدم الرد عليه.
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
     `;
 
     await transporter.sendMail({
@@ -133,6 +255,7 @@ export async function sendOrderStatusUpdateEmail(data: OrderEmailData) {
         to: data.customerEmail,
         subject: `تحديث حالة طلبك #${data.orderId} - JHD.LINE`,
         html,
+        attachments: emailAttachments,
     });
 }
 
@@ -144,23 +267,68 @@ export async function sendAdminOrderAlert(data: OrderEmailData, adminEmail: stri
     `).join("");
 
     const html = `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-top: 5px solid #C62828;">
-            <h2 style="color: #1A1A1A;">New Order Received! 🛍️</h2>
-            <p><strong>Order ID:</strong> #${data.orderId}</p>
-            <p><strong>Customer:</strong> ${data.customerName} (${data.customerEmail})</p>
-            <p><strong>Total Amount:</strong> ${data.currency} ${data.total.toFixed(2)}</p>
-            <hr/>
-            <h3>Order Items:</h3>
-            <ul>
-                ${itemsHtml}
-            </ul>
-            <p style="margin-top: 20px;">
-                <a href="${process.env.NEXT_PUBLIC_URL || 'https://jhd-line.com'}/admin" 
-                   style="display: inline-block; padding: 10px 20px; background: #C62828; color: white; text-decoration: none; border-radius: 5px;">
-                   Manage Order in Admin Panel
-                </a>
-            </p>
-        </div>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif; }
+    table { border-collapse: collapse; }
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdf5ce; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; max-width: 600px; width: 100%; text-align: left;">
+                
+                <tr>
+                    <td align="center" style="background-color: transparent;">
+                        <img src="cid:jhd-header" alt="JHD Line Banner" width="100%" style="display: block; max-width: 100%; height: auto; border: 0; background-color: transparent;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding: 30px;">
+                        <h2 style="color: #172370; font-size: 20px; margin-top: 0;">New Order Received! 🛍️</h2>
+                        <p style="color: #333333; font-size: 15px;"><strong>Order ID:</strong> #${data.orderId}</p>
+                        <p style="color: #333333; font-size: 15px;"><strong>Customer:</strong> ${data.customerName} (${data.customerEmail})</p>
+                        <p style="color: #333333; font-size: 15px;"><strong>Total Amount:</strong> ${data.currency} ${data.total.toFixed(2)}</p>
+                        
+                        <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;">
+                        
+                        <h3 style="color: #172370; font-size: 16px;">Order Items:</h3>
+                        <ul style="color: #555555; font-size: 14px; line-height: 1.6;">
+                            ${itemsHtml}
+                        </ul>
+                        
+                        <div style="margin-top: 30px; text-align: center;">
+                            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}/admin" 
+                               style="display: inline-block; padding: 12px 25px; background-color: #b83424; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                               Manage Order in Admin Panel
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
+                <tr>
+                    <td align="center" style="padding: 20px; color: #b83424; font-size: 12px; font-weight: bold; line-height: 1.8;">
+                        JHD.LINE System Alert<br>
+                        This is an automated administrative notification.
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
     `;
 
     await transporter.sendMail({
@@ -168,6 +336,7 @@ export async function sendAdminOrderAlert(data: OrderEmailData, adminEmail: stri
         to: adminEmail,
         subject: `[ADMIN ALERT] New Order #${data.orderId} from ${data.customerName}`,
         html,
+        attachments: emailAttachments,
     });
 }
 
@@ -175,23 +344,67 @@ export async function sendOTPEmail(email: string, otp: string) {
     if (!process.env.SMTP_USER) return;
 
     const html = `
-        <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; direction: rtl; text-align: right;">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #C62828; margin: 0; font-size: 28px;">JHD.LINE</h1>
-            </div>
-            <h2 style="color: #1A1A1A; margin-bottom: 20px;">رمز التحقق الخاص بك (OTP)</h2>
-            <p style="color: #555; font-size: 16px; line-height: 1.6;">
-                مرحباً بك في عالم جهاد! استخدم الرمز التالي لإتمام عملية تسجيل الدخول:
-            </p>
-            <div style="background: #FDF9F0; border: 2px dashed #C62828; padding: 20px; text-align: center; margin: 30px 0; border-radius: 8px;">
-                <span style="font-size: 32px; font-weight: 700; letter-spacing: 12px; color: #C62828; font-family: monospace;">${otp}</span>
-            </div>
-            <p style="color: #999; font-size: 14px;">
-                هذا الرمز صالح لمدة 10 دقائق فقط. إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد.
-            </p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-            <p style="color: #C62828; font-weight: 600; text-align: center;">شكراً لثقتك بـ JHD.LINE</p>
-        </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif; }
+    table { border-collapse: collapse; }
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdf5ce; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; max-width: 600px; width: 100%;">
+                
+                <tr>
+                    <td align="center" style="background-color: transparent;">
+                        <img src="cid:jhd-header" alt="JHD Line Banner" width="100%" style="display: block; max-width: 100%; height: auto; border: 0; background-color: transparent;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding: 40px 30px;">
+                        
+                        <h2 style="color: #000000; font-size: 20px; font-weight: bold; margin-top: 0; margin-bottom: 20px; text-align: right;">رمز التحقق الخاص بك (OTP)</h2>
+                        
+                        <p style="color: #888888; font-size: 15px; margin-bottom: 30px; line-height: 1.5; text-align: right;">
+                            مرحباً بك في عالم جهاد! استخدم الرمز التالي لإتمام عملية تسجيل الدخول:
+                        </p>
+
+                        <div style="margin: 30px 0;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="background-color: #f8f6f0; border: 2px dashed #b83424; border-radius: 8px; padding: 25px;">
+                                        <span style="color: #b83424; font-size: 28px; font-weight: bold; letter-spacing: 12px; font-family: monospace;">${otp}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <p style="color: #a0a0a0; font-size: 13px; text-align: right; margin-bottom: 30px;">
+                            هذا الرمز صالح لمدة 10 دقائق فقط. إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 30px 0;">
+
+                        <p style="color: #b83424; font-size: 14px; font-weight: bold; text-align: center; margin: 0;">
+                            شكراً لثقتك بـ JHD.LINE
+                        </p>
+
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
     `;
 
     await transporter.sendMail({
@@ -199,5 +412,6 @@ export async function sendOTPEmail(email: string, otp: string) {
         to: email,
         subject: `رمز التحقق الخاص بك: ${otp} - JHD.LINE`,
         html,
+        attachments: emailAttachments,
     });
 }

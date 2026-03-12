@@ -45,13 +45,14 @@
 
 .welcomeBlue {
   font-family: var(--ff-sans);
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  /* ~32px Brand prominent */
   font-weight: 500;
   color: var(--secondary);
   /* JHD.LINE Blue */
-  max-width: 800px;
+  max-width: 900px;
   margin-inline: auto;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 /* ── Marquee ── */
@@ -69,10 +70,11 @@
 
 .marqueeTrack {
   display: flex;
-  gap: 4rem;
+  gap: clamp(1.5rem, 6vw, 4rem);
   align-items: center;
   animation: marquee 30s linear infinite;
   white-space: nowrap;
+  width: max-content;
 }
 
 @keyframes marquee {
@@ -87,13 +89,25 @@
 
 .marqueeItem {
   font-family: var(--ff-serif);
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
   font-weight: 600;
   color: #FFFFFF;
   letter-spacing: .05em;
   display: flex;
   align-items: center;
-  gap: 4rem;
+  gap: clamp(1.5rem, 6vw, 4rem);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 1.4rem;
+  /* Doubled */
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  font-weight: 600;
 }
 
 .marqueeDot {
@@ -108,13 +122,22 @@
 /* ── Visual Categories ── */
 .visualCategoriesSection {
   padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 3vw, 1.5rem);
-  margin: clamp(1.5rem, 5vw, 3rem) clamp(0.5rem, 2vw, 1rem);
+  margin: 24px 16px;
   background: rgba(249, 241, 200, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
+  border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 8px 32px rgba(193, 39, 45, 0.05);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  /* Doubled */
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .visualCategories {
@@ -181,8 +204,8 @@
 }
 
 .visualCategoryImgWrap {
-  width: clamp(90px, 20vw, 120px);
-  height: clamp(90px, 20vw, 120px);
+  width: clamp(100px, 25vw, 140px);
+  height: clamp(100px, 25vw, 140px);
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid rgba(223, 23, 100, 0.8);
@@ -190,6 +213,7 @@
   transition: all 400ms cubic-bezier(0.2, 0, 0, 1);
   background: rgba(249, 241, 200, 0.6);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .visualCategoryCard:hover .visualCategoryImgWrap {
@@ -210,46 +234,85 @@
 }
 
 .visualCategoryTitle {
-  font-size: .875rem;
-  font-weight: 600;
+  font-size: 2rem;
+  /* Scaled up ~32px Brand prominent */
+  font-weight: 700;
   color: var(--secondary);
   text-align: center;
 }
 
-/* ── Most Selling ── */
+/* ── "Masterpiece" Section Canvas ── */
 .section {
-  padding: clamp(2rem, 8vw, 4rem) clamp(1rem, 5vw, 1.5rem);
-  margin: clamp(1.5rem, 5vw, 3rem) clamp(0.5rem, 2vw, 1rem);
-  background: rgba(249, 241, 200, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px rgba(193, 39, 45, 0.05);
+  background: var(--bg);
+  border: 1px solid rgba(184, 134, 11, 0.35);
+  border-radius: 48px;
+  width: calc(100% - 2rem);
+  max-width: 1100px;
+  margin: 64px auto;
+  padding: clamp(2rem, 1vw, 8rem) clamp(1.25rem, 1vw, 3rem);
+  position: relative;
+  overflow: visible;
+  box-shadow: rgba(162, 16, 37, 0.1) 0px 15px 50px -15px, rgba(255, 255, 255, 0.4) 0px 0px 0px 1px inset;
+}
+
+/* Inner Gold Trim & Ornaments */
+.section::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(184, 134, 11, 0.15);
+  /* Double Gold Border */
+  border-radius: 36px;
+  pointer-events: none;
+}
+
+/* Luxury Corner Accents */
+.section::before {
+  content: '✦';
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  color: rgba(184, 134, 11, 0.5);
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .sectionHeader {
-  margin-bottom: 4rem;
   text-align: center;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  display: flex;
   position: relative;
 }
 
+.sectionHeader::after {
+  content: '';
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.8), transparent);
+  margin-top: -2rem;
+}
+
 .sectionBadge {
-  color: var(--secondary);
-  font-size: .85rem;
-  font-weight: 700;
-  letter-spacing: .2em;
+  color: var(--primary);
+  letter-spacing: .5em;
   text-transform: uppercase;
-  margin-bottom: 0.75rem;
-  display: block;
+  margin-bottom: -5rem;
+  font-size: clamp(3rem, 3vw, 1rem);
+  font-weight: 500;
+  display: inline-block;
+  opacity: 0.8;
 }
 
 .sectionTitle {
   font-family: var(--ff-serif);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  /* Refined Elegance Scale */
   font-weight: 700;
-  color: var(--primary);
-  line-height: 1.2;
+  color: var(--secondary);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
 }
 
 .mostSellingGrid {
@@ -260,21 +323,21 @@
 
 /* ── Category Rows ── */
 .categorySection {
-  padding: clamp(2rem, 8vw, 4rem) clamp(1rem, 5vw, 1.5rem);
-  margin: clamp(1.5rem, 5vw, 3rem) clamp(0.5rem, 2vw, 1rem);
-  background: rgba(249, 241, 200, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
+  background: rgba(249, 241, 200, 0.6);
   border: 1px solid rgba(249, 241, 200, 0.6);
+  border-radius: 20px;
+  margin: 24px 1rem;
+  padding: clamp(2rem, 8vw, 4rem) clamp(1rem, 5vw, 1.5rem);
   box-shadow: 0 8px 32px rgba(193, 39, 45, 0.05);
+  max-width: calc(100% - 2rem);
 }
 
 .categoryHeader {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 2.5rem;
   gap: 2rem;
 }
 
@@ -285,12 +348,12 @@
 }
 
 .categoryBadge {
-  font-size: .75rem;
+  font-size: 1.5rem;
+  /* ~24px Brand prominent */
   font-weight: 700;
   color: var(--primary);
-  letter-spacing: .1em;
+  letter-spacing: .2em;
   text-transform: uppercase;
-  opacity: .8;
 }
 
 .categoryRight {
@@ -307,11 +370,19 @@
   border-radius: 9999px;
 }
 
+.orderDate {
+  font-size: 1.4rem;
+  /* Doubled */
+  color: var(--text-faint);
+  margin-top: 8px;
+}
+
 .sortPill {
-  padding: .4rem 1rem;
+  padding: .5rem 1.25rem;
   border-radius: 9999px;
-  font-size: .65rem;
-  font-weight: 600;
+  font-size: 1rem;
+  /* Scaled from .65rem */
+  font-weight: 700;
   color: var(--text-muted);
   background: transparent;
   cursor: pointer;
@@ -332,14 +403,15 @@
 }
 
 .viewAll {
-  font-size: .75rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  /* Double the size ~28px */
+  font-weight: 800;
   color: var(--secondary);
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: .1em;
-  border-bottom: 1px solid var(--primary);
-  padding-bottom: 2px;
+  letter-spacing: .2em;
+  border-bottom: 3px solid var(--primary);
+  padding-bottom: 6px;
   transition: all 200ms ease;
 }
 

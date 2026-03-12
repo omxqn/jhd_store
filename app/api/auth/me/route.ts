@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ authenticated: false, error: "User not found" }, { status: 404 });
         }
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             authenticated: true,
             user: {
                 id: user.id,
@@ -33,6 +33,15 @@ export async function GET(req: NextRequest) {
                 city: user.city
             }
         });
+
+        // Automatically refresh the JWT token if the role was upgraded in the DB
+        if (user.role !== auth.role) {
+            const { setAuthCookie, signJWT } = await import("@/lib/auth");
+            auth.role = user.role;
+            setAuthCookie(response, signJWT(auth));
+        }
+
+        return response;
     } catch (err) {
         console.error("[auth/me]", err);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

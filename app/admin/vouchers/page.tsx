@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import { formatPrice } from "@/lib/store";
 import { COUNTRIES } from "@/lib/data";
 import toast from "react-hot-toast";
@@ -12,6 +12,7 @@ export default function AdminVouchersPage() {
     const [vouchers, setVouchers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
     // New Voucher State
     const [newVoucher, setNewVoucher] = useState({
@@ -105,32 +106,72 @@ export default function AdminVouchersPage() {
                             <tr><td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "var(--admin-text-muted)" }}>Loading directory…</td></tr>
                         ) : vouchers.map(v => {
                             const isExpired = v.expires_at && new Date(v.expires_at) < new Date();
+                            const isExhausted = !v.is_public && v.use_count >= 1;
+                            const isExpanded = !!expandedRows[v.code];
+
                             return (
-                                <tr key={v.code}>
-                                    <td style={{ fontWeight: 800, letterSpacing: ".05em", color: "var(--admin-primary)", fontFamily: "monospace" }}>{v.code}</td>
-                                    <td style={{ fontWeight: 700 }}>{v.discount_type === 'percentage' ? `${v.discount_amount}%` : formatPrice(v.discount_amount, omr)}</td>
-                                    <td style={{ textTransform: "capitalize", fontSize: "0.8rem", color: "var(--admin-text-muted)" }}>{v.discount_type}</td>
-                                    <td>
-                                        <span style={{ fontSize: ".75rem", color: v.new_user_only ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                                            {v.new_user_only ? "👤 New Users" : "🛡️ Everyone"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span style={{ fontSize: ".75rem" }}>
-                                            {v.is_public ? `🌍 Public (${v.max_uses_per_user ?? 1}x/User)` : "🔒 Private (Single Use)"}
-                                        </span>
-                                    </td>
-                                    <td style={{ color: isExpired ? "#ef4444" : "var(--admin-text-muted)", fontSize: ".8rem" }}>
-                                        {v.expires_at ? new Date(v.expires_at).toLocaleDateString() : "No Expiry"}
-                                    </td>
-                                    <td>
-                                        {v.active ? (
-                                            <button onClick={() => deactivate(v.code)} style={{ padding: ".35rem .75rem", borderRadius: ".5rem", background: "rgba(239,68,68,.1)", color: "#ef4444", fontSize: ".75rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
-                                                Deactivate
-                                            </button>
-                                        ) : <span style={{ color: "var(--admin-text-muted)", fontSize: ".75rem" }}>Closed</span>}
-                                    </td>
-                                </tr>
+                                <Fragment key={v.code}>
+                                    <tr>
+                                        <td style={{ fontWeight: 800, letterSpacing: ".05em", color: "var(--admin-primary)", fontFamily: "monospace" }}>{v.code}</td>
+                                        <td style={{ fontWeight: 700 }}>{v.discount_type === 'percentage' ? `${v.discount_amount}%` : formatPrice(v.discount_amount, omr)}</td>
+                                        <td style={{ textTransform: "capitalize", fontSize: "0.8rem", color: "var(--admin-text-muted)" }}>{v.discount_type}</td>
+                                        <td>
+                                            <span style={{ fontSize: ".75rem", color: v.new_user_only ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
+                                                {v.new_user_only ? "👤 New Users" : "🛡️ Everyone"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ fontSize: ".75rem", fontWeight: 700 }}>
+                                                {v.use_count} Uses
+                                            </div>
+                                            <div style={{ fontSize: ".65rem", color: "var(--admin-text-muted)" }}>
+                                                {v.is_public ? `Limit: ${v.max_uses_per_user ?? 1}x/User` : "Single Use Total"}
+                                            </div>
+                                        </td>
+                                        <td style={{ color: isExpired ? "#ef4444" : "var(--admin-text-muted)", fontSize: ".8rem" }}>
+                                            {isExpired ? "🔴 Expired" : (isExhausted ? "🔴 Used" : (v.expires_at ? new Date(v.expires_at).toLocaleDateString() : "No Expiry"))}
+                                        </td>
+                                        <td>
+                                            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                                                {v.active && !isExpired && !isExhausted ? (
+                                                    <button onClick={() => deactivate(v.code)} style={{ padding: ".35rem .75rem", borderRadius: ".5rem", background: "rgba(239,68,68,.1)", color: "#ef4444", fontSize: ".75rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
+                                                        Deactivate
+                                                    </button>
+                                                ) : <span style={{ color: "var(--admin-text-muted)", fontSize: ".75rem" }}>Inactive</span>}
+
+                                                {v.redemptions?.length > 0 && (
+                                                    <button
+                                                        onClick={() => setExpandedRows(prev => ({ ...prev, [v.code]: !prev[v.code] }))}
+                                                        style={{ background: "none", border: "none", color: "var(--admin-primary)", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}
+                                                    >
+                                                        {isExpanded ? "Hide Logs ↑" : "View Logs ↓"}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {isExpanded && v.redemptions && (
+                                        <tr>
+                                            <td colSpan={7} style={{ background: "rgba(0,0,0,0.02)", padding: "1rem" }}>
+                                                <div style={{ fontSize: "0.75rem" }}>
+                                                    <div style={{ fontWeight: 700, marginBottom: "0.5rem", color: "var(--admin-primary)" }}>Redemption History (Last 50)</div>
+                                                    <div style={{ display: "grid", gap: "0.5rem" }}>
+                                                        {v.redemptions.map((r: any, idx: number) => (
+                                                            <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem", background: "white", borderRadius: "0.5rem", border: "1px solid var(--admin-border)" }}>
+                                                                <div>
+                                                                    <strong>Order #{r.order_id}</strong> - {r.customer_name} ({r.customer_email})
+                                                                </div>
+                                                                <div style={{ color: "var(--admin-text-muted)" }}>
+                                                                    {new Date(r.redeemed_at).toLocaleString()}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </Fragment>
                             );
                         })}
                     </tbody>

@@ -20,9 +20,10 @@ export async function POST(req: NextRequest) {
         const {
             items, subtotal, discount, total, name, email, phone,
             address, city, paymentMethod, guestVerified,
+            shippingTotal,
         } = body;
 
-        if (!items?.length || !total || !email) {
+        if (!items?.length || total === undefined || total === null || !email) {
             conn.release();
             return NextResponse.json({ error: "Missing required order fields" }, { status: 400 });
         }
@@ -57,23 +58,24 @@ export async function POST(req: NextRequest) {
 
         // 2. Insert the order
         const [result]: any = await conn.execute(
-            `INSERT INTO orders (user_id, guest_email, status, subtotal, discount, total, name, email, phone, address, city, payment_method)
-             VALUES (?, ?, 'processing', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, guestEmail, subtotal, discount, total, name, email, phone, address, city, paymentMethod || "thawani"]
+            `INSERT INTO orders (user_id, guest_email, status, subtotal, discount, total, name, email, phone, address, city, payment_method, shipping_fee, voucher_code)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, guestEmail, "processing", subtotal, discount, total, name, email, phone, address, city, paymentMethod || "thawani", shippingTotal || 0, body.voucherCode || null]
         );
         const orderId = result.insertId;
 
         // 3. Insert items & deduct stock
         for (const item of items) {
             await conn.execute(
-                `INSERT INTO order_items (order_id, product_id, name, price, quantity, fabric_type, fabric_length, neck_size, neckline, stitch, stitch_price, accessories, accessories_price, tailor_measurements, image)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO order_items (order_id, product_id, name, price, quantity, fabric_type, fabric_length, neck_size, neckline, stitch, stitch_price, accessories, accessories_price, tailor_measurements, image, shipping_cost)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     orderId, item.productId, item.name, item.price, item.quantity,
                     item.fabricType, item.fabricLength || null, item.neckSize || null,
                     item.neckline, item.stitch ? 1 : 0, item.stitchPrice || 0,
                     JSON.stringify(item.accessories || []), item.accessoriesPrice || 0,
                     JSON.stringify(item.tailorMeasurements || {}), item.image || null,
+                    item.shippingCost || 0,
                 ]
             );
             // Deduct stock atomically
@@ -129,17 +131,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     const auth = getAuthFromRequest(req);
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get("email");
+    if (!auth) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 
-    if (!auth && !email) return NextResponse.json({ error: "Auth required" }, { status: 401 });
-
-    let orders;
-    if (auth) {
-        orders = await query("SELECT * FROM orders WHERE user_id=? ORDER BY created_at DESC", [auth.userId]);
-    } else {
-        orders = await query("SELECT * FROM orders WHERE email=? ORDER BY created_at DESC", [email]);
-    }
+    const orders = await query("SELECT * FROM orders WHERE user_id=? ORDER BY created_at DESC", [auth.userId]);
 
     // Attach items
     for (const order of orders as any[]) {

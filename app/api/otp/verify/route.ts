@@ -39,13 +39,14 @@ export async function POST(req: NextRequest) {
         const token = signJWT({
             userId: user.id,
             email: user.email,
-            role: user.role as "customer" | "admin",
+            role: user.role as "customer" | "admin" | "super_admin",
             name: name || user.name,
         });
 
         const res = NextResponse.json({
             success: true,
             verified: true,
+            token,
             user: {
                 id: user.id,
                 name: name || user.name,

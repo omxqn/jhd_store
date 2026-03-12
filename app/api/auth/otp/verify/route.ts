@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
         // Issue JWT
         const token = signJWT({ userId: user.id, email: user.email, role: user.role as any, name: user.name });
         const res = NextResponse.json({
+            token,
             user: { id: user.id, name: user.name, email: user.email, role: user.role }
         });
         setAuthCookie(res, token);

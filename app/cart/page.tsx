@@ -37,14 +37,19 @@ export default function CartPage() {
                                             <div className={styles.itemCode}>#{item.productId}</div>
                                             <h3 className={styles.itemName}>{item.name}</h3>
                                         </div>
-                                        <button className={styles.removeBtn} onClick={() => { removeFromCart(item.productId); toast("Item removed"); }}>
+                                        <button className={styles.removeBtn} onClick={() => { removeFromCart(item); toast("Item removed"); }}>
                                             🗑 Remove
                                         </button>
                                     </div>
 
                                     <div className={styles.itemOptions}>
-                                        <span className={styles.optionTag}>{item.fabricType}</span>
-                                        <span className={styles.optionTag}>{item.neckline}</span>
+                                        {!item.fabricType.includes("N/A") && <span className={styles.optionTag}>{item.fabricType}</span>}
+                                        {item.size && <span className={styles.optionTag}>Size: {item.size}</span>}
+                                        {item.color && <span className={styles.optionTag}>Color: {item.color}</span>}
+                                        {item.selectedOptions && Object.entries(item.selectedOptions).map(([k, v]) => (
+                                            <span key={k} className={styles.optionTag}>{k}: {v}</span>
+                                        ))}
+                                        {!item.neckline.includes("N/A") && <span className={styles.optionTag}>{item.neckline}</span>}
                                         {item.stitch && <span className={`${styles.optionTag} ${styles.optionTagGold}`}>✂ Bespoke Tailored</span>}
                                         {item.accessories.filter(a => a !== "None").map(a => (
                                             <span key={a} className={styles.optionTag}>{a}</span>
@@ -53,9 +58,9 @@ export default function CartPage() {
 
                                     <div className={styles.itemFooter}>
                                         <div className={styles.qtyControls}>
-                                            <button className={styles.qtyBtn} onClick={() => { updateQty(item.productId, item.quantity - 1); }}>−</button>
+                                            <button className={styles.qtyBtn} onClick={() => { updateQty(item, item.quantity - 1); }}>−</button>
                                             <span className={styles.qtyVal}>{item.quantity}</span>
-                                            <button className={styles.qtyBtn} onClick={() => updateQty(item.productId, item.quantity + 1)}>+</button>
+                                            <button className={styles.qtyBtn} onClick={() => updateQty(item, item.quantity + 1)}>+</button>
                                         </div>
                                         <span className={styles.itemPrice}>{formatPrice(item.price * item.quantity, country)}</span>
                                     </div>

@@ -2,29 +2,43 @@
    JIHAD STORE — Global Styles (Light Elegant Overhaul)
    Inspired by Tulip-Lab & Minimalist Boutique Aesthetics
    ===================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap');
+@font-face {
+  font-family: 'FF Wahm';
+  src: url('/fonts/ff-wahm-two.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
-  font-family: "FF Wahm", system-ui, sans-serif;
+  font-family: "FF Wahm", "Inter", system-ui, -apple-system, sans-serif;
   background-color: var(--surface-2);
   color: #1A1A1A;
-  line-height: 1.6;
+  font-size: 30px;
+  line-height: 1.4;
   min-height: 100vh;
   overflow-x: hidden;
+  width: 100%;
   position: relative;
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 24px;
+  }
 }
 
 body::before {
@@ -97,12 +111,12 @@ main {
   --shadow-primary: 0 4px 12px rgba(198, 40, 40, 0.15);
 
   /* Layout */
-  --header-h: 72px;
+  --header-h: 68px;
   --max-w: 1320px;
 
   /* Fonts */
-  --ff-serif: 'Cormorant Garamond', serif;
-  --ff-sans: 'Outfit', sans-serif;
+  --ff-serif: "FF Wahm", serif;
+  --ff-sans: "FF Wahm", "Inter", system-ui, sans-serif;
 }
 
 /* Scrollbar */
@@ -124,23 +138,22 @@ main {
   background: var(--primary);
 }
 
-/* ── Container ── */
 .container {
   max-width: var(--max-w);
   margin-inline: auto;
-  padding-inline: 1.5rem;
+  padding-inline: 20px;
 }
 
-/* ── Buttons ── */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: .5rem;
-  padding: .75rem 1.75rem;
+  gap: 12px;
+  padding: 12px 24px;
   border-radius: 9999px;
   /* Pill shape for elegance */
   font-weight: 500;
-  font-size: .875rem;
+  font-size: 0.8rem;
+  /* ~24px, perfect for buttons next to 30px text */
   transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
   white-space: nowrap;
   letter-spacing: .04em;
@@ -190,13 +203,13 @@ main {
 }
 
 .btnSm {
-  padding: .5rem 1.25rem;
-  font-size: .7rem;
+  padding: .75rem 1.5rem;
+  font-size: .9rem;
 }
 
 .btnLg {
-  padding: 1rem 2.5rem;
-  font-size: .9rem;
+  padding: 1.5rem 3.5rem;
+  font-size: 1.4rem;
 }
 
 .btnBlock {
@@ -208,12 +221,12 @@ main {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 9px;
+  gap: .4rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: .05em;
   text-transform: uppercase;
   line-height: 1;
 }
@@ -237,11 +250,11 @@ main {
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .75rem;
 }
 
 .formLabel {
-  font-size: .75rem;
+  font-size: 1.875rem; /* Exactly 30px */
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -252,12 +265,12 @@ main {
 .formSelect,
 .formTextarea {
   width: 100%;
-  padding: .875rem 1.125rem;
+  padding: 12px 18px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text);
-  font-size: .875rem;
+  font-size: 1.5rem; /* ~24px, balanced for inputs */
   transition: all 200ms ease;
   outline: none;
 }

@@ -37,11 +37,14 @@ export default function EditProductPage() {
         name: "", category: "Thobes", price: "", old_price: "",
         availability: "available", stitch_price: "0", shipping_note: "",
         description: "", details: "", most_selling: false, stock: "100",
+        shipping_cost: "2",
+        is_premade: false,
     });
 
     const [images, setImages] = useState<string[]>([]);
     const [fabricTypes, setFabricTypes] = useState<string[]>([]);
     const [fabricInput, setFabricInput] = useState("");
+    const [options, setOptions] = useState<{ title: string, values: string[] }[]>([]);
     const [necklines, setNecklines] = useState<string[]>([]);
     const [badges, setBadges] = useState<string[]>([]);
     const [accessories, setAccessories] = useState<AccessoryRow[]>([{ name: "None", price: "0" }]);
@@ -76,9 +79,12 @@ export default function EditProductPage() {
                     shipping_note: p.shipping_note || "",
                     description: p.description || "", details: p.details || "",
                     most_selling: !!p.most_selling, stock: p.stock ?? "100",
+                    shipping_cost: p.shipping_cost ?? "2.000",
+                    is_premade: !!p.is_premade,
                 });
                 setImages(safeJson(p.images, []));
                 setFabricTypes(safeJson(p.fabric_types, []));
+                setOptions(safeJson(p.options, []));
                 const rawNecklines = safeJson(p.neckline_shapes, []);
                 setNecklines(rawNecklines.map((n: any) => typeof n === "string" ? n : n?.name ?? "").filter(Boolean));
                 setBadges(safeJson(p.badges, []));
@@ -142,11 +148,14 @@ export default function EditProductPage() {
                 price: parseFloat(form.price),
                 old_price: form.old_price ? parseFloat(form.old_price) : null,
                 stitch_price: parseFloat(form.stitch_price || "0"),
+                shipping_cost: parseFloat(form.shipping_cost || "2"),
                 stock: parseInt(form.stock || "100"),
                 images,
                 badges,
                 fabric_types: fabricTypes,
                 neckline_shapes: necklines,
+                is_premade: form.is_premade,
+                options,
                 accessories: accessories.map(a => ({ name: a.name, price: parseFloat(a.price) || 0 })),
                 specs: specs.filter(s => s.label).map(s => ({ label: s.label, value: s.value })),
             };
@@ -155,8 +164,18 @@ export default function EditProductPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-            if (res.ok) { toast.success("Product updated! ✓"); router.push("/admin/products"); }
-            else { const d = await res.json(); toast.error(d.error || "Failed to update product"); }
+            if (res.ok) { 
+                toast.success("Product updated! ✓"); 
+                router.push("/admin/products"); 
+            } else {
+                const text = await res.text();
+                try {
+                    const d = JSON.parse(text);
+                    toast.error(d.error || "Failed to update product");
+                } catch {
+                    toast.error(`Error: ${text || res.statusText}`);
+                }
+            }
         } finally { setLoading(false); }
     };
 
@@ -226,8 +245,13 @@ export default function EditProductPage() {
                 {/* Section 2: Pricing */}
                 <div style={sectionStyle}>
                     <div style={sectionTitle}>💰 Pricing</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-                        {[["Price (OMR) *", "price", "0.000"], ["Old Price (OMR)", "old_price", "Leave blank if no sale"], ["Stitch Price (OMR)", "stitch_price", "0.000"]].map(([label, key, ph]) => (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
+                        {[
+                            ["Price (OMR) *", "price", "0.000"],
+                            ["Old Price (OMR)", "old_price", "Leave blank if no sale"],
+                            ["Stitch Price (OMR)", "stitch_price", "0.000"],
+                            ["Shipping Cost (OMR) *", "shipping_cost", "2.000"]
+                        ].map(([label, key, ph]) => (
                             <div key={key}>
                                 <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{label}</label>
                                 <input style={inputStyle} type="number" step="0.001" placeholder={ph} value={form[key as keyof typeof form] as string} onChange={f(key as keyof typeof form)} />
@@ -302,72 +326,164 @@ export default function EditProductPage() {
                     </div>
                 </div>
 
-                {/* Section 6: Fabric Types */}
+                {/* Section 6: Options (Sizes, Colors, Fabric) */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>🧵 Fabric Types</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                        {fabricTypes.map((fab, i) => (
-                            <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
-                                {fab}
-                                <button type="button" onClick={() => setFabricTypes(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem" }}>×</button>
-                            </span>
-                        ))}
+                    <div style={sectionTitle}>⚙️ Product Options</div>
+                    
+                    <div style={{ marginBottom: "1.5rem" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
+                            <input type="checkbox" checked={form.is_premade} onChange={f("is_premade")} style={{ width: 18, height: 18, accentColor: "var(--admin-primary)" }} />
+                            <div>
+                                <div style={{ fontWeight: 600 }}>Is Pre-made / Ready to Wear?</div>
+                                <div style={{ fontSize: "0.75rem", color: "var(--admin-text-muted)" }}>This will hide tailoring fields and focus on sizes/colors</div>
+                            </div>
+                        </label>
                     </div>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <input style={{ ...inputStyle, flex: 1 }} value={fabricInput} onChange={e => setFabricInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addFabric(); } }}
-                            placeholder="Type a fabric name and press Enter or Add" />
-                        <button type="button" onClick={addFabric} style={{ padding: "0.6rem 1rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>+ Add</button>
+
+                    <div style={{ display: "grid", gap: "1.5rem" }}>
+                        {/* Fabric Types */}
+                        {!form.is_premade && (
+                            <div>
+                                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.6rem", color: "var(--admin-text-muted)" }}>🧵 Fabric Types (Standard Options)</label>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                                    {fabricTypes.map((fab, i) => (
+                                        <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                                            {fab}
+                                            <button type="button" onClick={() => setFabricTypes(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem" }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                    <input style={{ ...inputStyle, flex: 1 }} value={fabricInput} onChange={e => setFabricInput(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addFabric(); } }}
+                                        placeholder="Add fabric type..." />
+                                    <button type="button" onClick={addFabric} style={{ padding: "0.6rem 1rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600 }}>+ Add</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: Dynamic Options System */}
+                        <div style={{ borderTop: "1px solid var(--admin-border)", paddingTop: "1.5rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--admin-text)", textTransform: "uppercase" }}>Custom Option Groups</label>
+                                <button type="button" 
+                                    onClick={() => setOptions(prev => [...prev, { title: "", values: [] }])}
+                                    style={{ padding: "0.35rem 0.85rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}>
+                                    + Add Group
+                                </button>
+                            </div>
+                            
+                            <div style={{ display: "grid", gap: "1rem" }}>
+                                {options.map((group, gIdx) => (
+                                    <div key={gIdx} style={{ background: "rgba(0,0,0,0.02)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--admin-border)" }}>
+                                        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--admin-text-muted)" }}>Group Title (e.g. Size, Color, Fit)</label>
+                                                <input style={inputStyle} value={group.title} 
+                                                    onChange={e => setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, title: e.target.value } : g))}
+                                                    placeholder="Option Title" />
+                                            </div>
+                                            <button type="button" onClick={() => setOptions(prev => prev.filter((_, i) => i !== gIdx))}
+                                                style={{ alignSelf: "flex-end", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "8px", height: "38px", width: "38px", cursor: "pointer", fontSize: "1.2rem" }}>
+                                                ×
+                                            </button>
+                                        </div>
+                                        
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 600, marginBottom: "0.5rem", color: "var(--admin-text-muted)" }}>Values</label>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                                                {group.values.map((val, vIdx) => (
+                                                    <span key={vIdx} style={{ background: "var(--admin-primary)", color: "#fff", padding: "2px 10px", borderRadius: "4px", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                                                        {val}
+                                                        <button type="button" onClick={() => setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, values: g.values.filter((_, vi) => vi !== vIdx) } : g))} 
+                                                            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: "0.9rem" }}>×</button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                                                <input id={`opt-val-edit-${gIdx}`} style={{ ...inputStyle, fontSize: "0.75rem", padding: "0.4rem 0.6rem" }} placeholder="New Value..." 
+                                                    onKeyDown={e => {
+                                                        if (e.key === "Enter") {
+                                                            e.preventDefault();
+                                                            const val = (e.currentTarget.value || "").trim();
+                                                            if (val && !group.values.includes(val)) {
+                                                                setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, values: [...g.values, val] } : g));
+                                                                e.currentTarget.value = "";
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                <button type="button" 
+                                                    onClick={() => {
+                                                        const el = document.getElementById(`opt-val-edit-${gIdx}`) as HTMLInputElement;
+                                                        const val = (el.value || "").trim();
+                                                        if (val && !group.values.includes(val)) {
+                                                            setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, values: [...g.values, val] } : g));
+                                                            el.value = "";
+                                                        }
+                                                    }}
+                                                    style={{ padding: "0 0.75rem", background: "var(--admin-text)", color: "var(--admin-surface)", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.7rem", fontWeight: 700 }}>
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {options.length === 0 && <div style={{ textAlign: "center", padding: "1.5rem", border: "1px dashed var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-muted)", fontSize: "0.8rem" }}>No custom options added yet. Click "+ Add Group" to define sizes, colors, etc.</div>}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Section 7: Necklines */}
-                <div style={sectionStyle}>
-                    <div style={sectionTitle}>👔 Neckline Shapes</div>
-                    {/* Selected chips */}
-                    {necklines.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                            {necklines.map((n, i) => (
-                                <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
-                                    {n}
-                                    <button type="button" onClick={() => setNecklines(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem", lineHeight: 1 }}>×</button>
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                    {/* DB picker grid */}
-                    {dbNecklines.length > 0 ? (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem" }}>
-                            {dbNecklines.map(shape => {
-                                const selected = necklines.includes(shape.name);
-                                return (
-                                    <button key={shape.id} type="button"
-                                        onClick={() => setNecklines(prev =>
-                                            selected ? prev.filter(n => n !== shape.name) : [...prev, shape.name]
-                                        )}
-                                        style={{
-                                            border: `2px solid ${selected ? "var(--admin-primary)" : "var(--admin-border)"}`,
-                                            borderRadius: "10px", background: selected ? "rgba(215,79,144,0.1)" : "var(--admin-surface)",
-                                            cursor: "pointer", padding: "0.5rem", textAlign: "center",
-                                            transition: "all 150ms", position: "relative",
-                                        }}>
-                                        {selected && <div style={{ position: "absolute", top: "4px", right: "4px", background: "var(--admin-primary)", color: "#fff", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.6rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✓</div>}
-                                        {shape.image_url ? (
-                                            <img src={shape.image_url} alt={shape.name} style={{ width: "100%", aspectRatio: "1", objectFit: "contain", borderRadius: "6px", marginBottom: "0.4rem" }} />
-                                        ) : (
-                                            <div style={{ fontSize: "2rem", marginBottom: "0.4rem" }}>👔</div>
-                                        )}
-                                        <div style={{ fontSize: "0.72rem", fontWeight: 600, color: selected ? "var(--admin-primary)" : "var(--admin-text)" }}>{shape.name}</div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div style={{ color: "var(--admin-text-muted)", fontSize: "0.85rem", padding: "1rem", textAlign: "center", border: "1px dashed var(--admin-border)", borderRadius: "8px" }}>
-                            No neckline shapes in database yet. <a href="/admin/necklines" target="_blank" style={{ color: "var(--admin-primary)" }}>Add some →</a>
-                        </div>
-                    )}
-                </div>
+                {!form.is_premade && (
+                    <div style={sectionStyle}>
+                        <div style={sectionTitle}>👔 Neckline Shapes</div>
+                        {/* Selected chips */}
+                        {necklines.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                                {necklines.map((n, i) => (
+                                    <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                                        {n}
+                                        <button type="button" onClick={() => setNecklines(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem", lineHeight: 1 }}>×</button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        {/* DB picker grid */}
+                        {dbNecklines.length > 0 ? (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem" }}>
+                                {dbNecklines.map(shape => {
+                                    const selected = necklines.includes(shape.name);
+                                    return (
+                                        <button key={shape.id} type="button"
+                                            onClick={() => setNecklines(prev =>
+                                                selected ? prev.filter(n => n !== shape.name) : [...prev, shape.name]
+                                            )}
+                                            style={{
+                                                border: `2px solid ${selected ? "var(--admin-primary)" : "var(--admin-border)"}`,
+                                                borderRadius: "10px", background: selected ? "rgba(215,79,144,0.1)" : "var(--admin-surface)",
+                                                cursor: "pointer", padding: "0.5rem", textAlign: "center",
+                                                transition: "all 150ms", position: "relative",
+                                            }}>
+                                            {selected && <div style={{ position: "absolute", top: "4px", right: "4px", background: "var(--admin-primary)", color: "#fff", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.6rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✓</div>}
+                                            {shape.image_url ? (
+                                                <img src={shape.image_url} alt={shape.name} style={{ width: "100%", aspectRatio: "1", objectFit: "contain", borderRadius: "6px", marginBottom: "0.4rem" }} />
+                                            ) : (
+                                                <div style={{ fontSize: "2rem", marginBottom: "0.4rem" }}>👔</div>
+                                            )}
+                                            <div style={{ fontSize: "0.72rem", fontWeight: 600, color: selected ? "var(--admin-primary)" : "var(--admin-text)" }}>{shape.name}</div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div style={{ color: "var(--admin-text-muted)", fontSize: "0.85rem", padding: "1rem", textAlign: "center", border: "1px dashed var(--admin-border)", borderRadius: "8px" }}>
+                                No neckline shapes in database yet. <a href="/admin/necklines" target="_blank" style={{ color: "var(--admin-primary)" }}>Add some →</a>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Section 8: Accessories */}
                 <div style={sectionStyle}>
@@ -405,11 +521,11 @@ export default function EditProductPage() {
                     </div>
                 </div>
 
-                {/* Options */}
+                {/* Visibility */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>⚙️ Options</div>
+                    <div style={sectionTitle}>👁️ Visibility</div>
                     <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
-                        <input type="checkbox" checked={form.most_selling as boolean} onChange={f("most_selling")} style={{ width: 18, height: 18, accentColor: "var(--admin-primary)" }} />
+                        <input type="checkbox" checked={form.most_selling} onChange={f("most_selling")} style={{ width: 18, height: 18, accentColor: "var(--admin-primary)" }} />
                         <div>
                             <div style={{ fontWeight: 600 }}>Feature on Homepage</div>
                             <div style={{ fontSize: "0.75rem", color: "var(--admin-text-muted)" }}>Show in the "Most Selling" section</div>

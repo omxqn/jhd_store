@@ -44,7 +44,7 @@ export default function LoginPage() {
             });
             const data = await res.json();
             if (!res.ok) { toast.error(data.error || "Invalid or expired code"); return; }
-            setAuthUser(data.user);
+            setAuthUser(data.user, data.token);
             toast.success(`Welcome back, ${data.user.name.split(' ')[0]}`);
             router.push(data.user.role === "admin" ? "/admin" : "/myaccount");
         } catch (err) {

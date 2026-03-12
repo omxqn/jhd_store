@@ -48,7 +48,8 @@
     border: none;
     color: var(--secondary);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.8rem;
+    /* ~24px */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -65,7 +66,7 @@
 .grid {
     display: grid;
     grid-template-columns: minmax(300px, 1fr) 1.2fr;
-    gap: 2.5rem;
+    gap: 40px;
     align-items: start;
 }
 
@@ -85,7 +86,7 @@
 .infoCol {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 20px;
 }
 
 /* Mobile responsive fixes */
@@ -102,4 +103,62 @@
     .imageWrap {
         max-height: 50vh;
     }
+}
+
+/* Options Selection Styles */
+.optionsWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.optionGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.optionLabel {
+    font-size: 1.25rem; /* Ultra scaled */
+    font-weight: 700;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.optionLabel span {
+    color: var(--primary);
+    margin-left: 0.5rem;
+}
+
+.pillGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.optionPill {
+    padding: .6rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--secondary);
+    font-size: 1.15rem; /* Ultra scaled */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.optionPill:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(198, 40, 101, 0.02);
+}
+
+.pillActive {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(198, 40, 101, 0.2);
 }

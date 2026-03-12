@@ -34,6 +34,11 @@ function normalizeProduct(p: any) {
         badges: safeJson(p.badges, []),
         mostSelling: !!p.most_selling,
         stock: p.stock ?? null,
+        shippingCost: parseFloat(p.shipping_cost) || 2,
+        sizes: safeJson(p.sizes, []),
+        colors: safeJson(p.colors, []),
+        options: safeJson(p.options, []),
+        isPremade: !!p.is_premade,
     };
 }
 
@@ -52,6 +57,9 @@ export default function ProductPage() {
     const [selectedNeckline, setSelectedNeckline] = useState("");
     const [necklineOpen, setNecklineOpen] = useState(false);
     const [stitch, setStitch] = useState<"yes" | "no">("no");
+    const [selectedSize, setSelectedSize] = useState("");
+    const [selectedColor, setSelectedColor] = useState("");
+    const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
     const [tailorMeasurements, setTailorMeasurements] = useState<Record<string, string>>({});
     const [selectedAccessories, setSelectedAccessories] = useState<string[]>(["None"]);
     const [activeTab, setActiveTab] = useState<"desc" | "details" | "specs">("desc");
@@ -117,19 +125,42 @@ export default function ProductPage() {
     const totalPrice = (product.price + stitchPrice + accessoriesPrice) * qty;
 
     const handleAddToCart = () => {
+        if (product.sizes.length > 0 && !selectedSize) {
+            toast.error("Please select a size 📏");
+            return;
+        }
+        if (product.colors.length > 0 && !selectedColor) {
+            toast.error("Please select a color 🎨");
+            return;
+        }
+
+        // Validate generic options
+        for (const opt of product.options) {
+            if (!selectedOptions[opt.title]) {
+                toast.error(`Please select: ${opt.title}`);
+                return;
+            }
+        }
+
         const item: CartItem = {
             productId: product.id,
             name: product.name,
             price: product.price + stitchPrice + accessoriesPrice,
             quantity: qty,
-            fabricType, fabricLength, neckSize,
-            neckline: selectedNeckline,
-            stitch: stitch === "yes",
-            stitchPrice: stitch === "yes" ? product.stitchPrice : 0,
+            fabricType: product.isPremade ? "N/A" : fabricType, 
+            fabricLength: product.isPremade ? "N/A" : fabricLength, 
+            neckSize: product.isPremade ? "N/A" : neckSize,
+            neckline: product.isPremade ? "N/A" : selectedNeckline,
+            stitch: !product.isPremade && stitch === "yes",
+            stitchPrice: (!product.isPremade && stitch === "yes") ? product.stitchPrice : 0,
             accessoriesPrice,
-            tailorMeasurements: stitch === "yes" ? tailorMeasurements : {},
+            tailorMeasurements: (!product.isPremade && stitch === "yes") ? tailorMeasurements : {},
             accessories: selectedAccessories,
             image: product.images[0] ?? "",
+            shippingCost: product.shippingCost,
+            size: selectedSize || undefined,
+            color: selectedColor || undefined,
+            selectedOptions: selectedOptions,
         };
         addToCart(item);
         toast.success(`${product.name} added to cart! 🛒`);
@@ -178,78 +209,148 @@ export default function ProductPage() {
 
                         <hr className={styles.divider} />
 
-                        {/* Fabric Type */}
-                        {product.fabricTypes.length > 0 && (
-                            <div>
-                                <label className={styles.optLabel}>Fabric Selection: <span className={styles.optValue}>{fabricType}</span></label>
-                                <select className="formSelect" style={{ color: "black" }} value={fabricType} onChange={e => setFabricType(e.target.value)}>
-                                    {product.fabricTypes.map((f: string) => <option key={f}>{f}</option>)}
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Measurements */}
-                        <div className={styles.twoCol}>
-                            <div>
-                                <label className={styles.optLabel}>Fabric Length (cm)</label>
-                                <input className="formInput" style={{ color: "black" }} type="number" placeholder="150" value={fabricLength} onChange={e => setFabricLength(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className={styles.optLabel}>Neck Size (cm)</label>
-                                <input className="formInput" style={{ color: "black" }} type="number" placeholder="40" value={neckSize} onChange={e => setNeckSize(e.target.value)} />
-                            </div>
-                        </div>
-
-                        {/* Neckline Shapes */}
-                        {product.necklineShapes.length > 0 && (
-                            <div>
-                                <button className={styles.optLabelBtn} onClick={() => setNecklineOpen(o => !o)}>
-                                    Neckline Shape: <span className={styles.optValue}>{selectedNeckline}</span> {necklineOpen ? "▴" : "▾"}
-                                </button>
-                                {necklineOpen && (
-                                    <div className={styles.necklineGrid}>
-                                        {product.necklineShapes.map((ns: any) => (
-                                            <button key={ns.name}
-                                                className={`${styles.necklineOption} ${selectedNeckline === ns.name ? styles.selected : ""}`}
-                                                onClick={() => { setSelectedNeckline(ns.name); setNecklineOpen(false); }}>
-                                                {ns.image && <img src={ns.image} alt={ns.name} />}
-                                                <span>{ns.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Stitch */}
-                        <div>
-                            <label className={styles.optLabel}>Tailoring / Stitching</label>
-                            <div className={styles.stitchRow}>
-                                {(["yes", "no"] as const).map(v => (
-                                    <label key={v} className={`${styles.stitchLabel} ${stitch === v ? styles.stitchSelected : ""}`}>
-                                        <input type="radio" name="stitch" value={v} checked={stitch === v} onChange={() => setStitch(v)} style={{ display: "none" }} />
-                                        {v === "yes" ? `✂️ Bespoke (+${formatPrice(product.stitchPrice, country)})` : "No Stitching"}
-                                    </label>
-                                ))}
-                            </div>
-                            {stitch === "yes" && (
-                                <div className={styles.stitchFields}>
-                                    <div className={styles.stitchNote}>Tailoring service requested. Please provide measurements in <strong>cm</strong>.</div>
-                                    {["Chest", "Waist", "Hips", "Shoulder Width", "Sleeve Length", "Total Length"].map(m => (
-                                        <div key={m}>
-                                            <label className={styles.optLabel}>{m}</label>
-                                            <input className="formInput" type="number" placeholder="0.0"
-                                                value={tailorMeasurements[m] ?? ""}
-                                                onChange={e => setTailorMeasurements(p => ({ ...p, [m]: e.target.value }))} />
-                                        </div>
+                        {/* PRE-MADE OPTIONS: Sizes & Colors */}
+                        {product.sizes.length > 0 && (
+                            <div style={{ marginBottom: "1.5rem" }}>
+                                <label className={styles.optLabel}>Select Size: <span className={styles.optValue}>{selectedSize}</span></label>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                                    {product.sizes.map((s: string) => (
+                                        <button key={s} 
+                                            onClick={() => setSelectedSize(s)}
+                                            style={{
+                                                padding: "0.5rem 1.25rem", borderRadius: "8px", border: "1px solid",
+                                                borderColor: selectedSize === s ? "var(--primary)" : "var(--border)",
+                                                background: selectedSize === s ? "var(--primary)" : "transparent",
+                                                color: selectedSize === s ? "#fff" : "var(--secondary)",
+                                                cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 200ms"
+                                            }}>
+                                            {s}
+                                        </button>
                                     ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+
+                        {product.colors.length > 0 && (
+                            <div style={{ marginBottom: "1.5rem" }}>
+                                <label className={styles.optLabel}>Select Color: <span className={styles.optValue}>{selectedColor}</span></label>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                                    {product.colors.map((c: string) => (
+                                        <button key={c} 
+                                            onClick={() => setSelectedColor(c)}
+                                            style={{
+                                                padding: "0.5rem 1.25rem", borderRadius: "8px", border: "1px solid",
+                                                borderColor: selectedColor === c ? "var(--primary)" : "var(--border)",
+                                                background: selectedColor === c ? "var(--primary)" : "transparent",
+                                                color: selectedColor === c ? "#fff" : "var(--secondary)",
+                                                cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 200ms"
+                                            }}>
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* DYNAMIC GENERIC OPTIONS */}
+                        {product.options.map((opt: { title: string, values: string[] }) => (
+                            <div key={opt.title} style={{ marginBottom: "1.5rem" }}>
+                                <label className={styles.optLabel}>{opt.title}: <span className={styles.optValue}>{selectedOptions[opt.title]}</span></label>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                                    {opt.values.map((v: string) => (
+                                        <button key={v} 
+                                            onClick={() => setSelectedOptions(prev => ({ ...prev, [opt.title]: v }))}
+                                            style={{
+                                                padding: "0.5rem 1.25rem", borderRadius: "8px", border: "1px solid",
+                                                borderColor: selectedOptions[opt.title] === v ? "var(--primary)" : "var(--border)",
+                                                background: selectedOptions[opt.title] === v ? "var(--primary)" : "transparent",
+                                                color: selectedOptions[opt.title] === v ? "#fff" : "var(--secondary)",
+                                                cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 200ms"
+                                            }}>
+                                            {v}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* TAILORING OPTIONS: Only for Bespoke/Not Pre-made */}
+                        {!product.isPremade && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                                {/* Fabric Type */}
+                                {product.fabricTypes.length > 0 && (
+                                    <div>
+                                        <label className={styles.optLabel}>Fabric Selection: <span className={styles.optValue}>{fabricType}</span></label>
+                                        <select className="formSelect" style={{ color: "black" }} value={fabricType} onChange={e => setFabricType(e.target.value)}>
+                                            {product.fabricTypes.map((f: string) => <option key={f}>{f}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {/* Measurements */}
+                                <div className={styles.twoCol}>
+                                    <div>
+                                        <label className={styles.optLabel}>Fabric Length (cm)</label>
+                                        <input className="formInput" style={{ color: "black" }} type="number" placeholder="150" value={fabricLength} onChange={e => setFabricLength(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={styles.optLabel}>Neck Size (cm)</label>
+                                        <input className="formInput" style={{ color: "black" }} type="number" placeholder="40" value={neckSize} onChange={e => setNeckSize(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                {/* Neckline Shapes */}
+                                {product.necklineShapes.length > 0 && (
+                                    <div>
+                                        <button className={styles.optLabelBtn} onClick={() => setNecklineOpen(o => !o)}>
+                                            Neckline Shape: <span className={styles.optValue}>{selectedNeckline}</span> {necklineOpen ? "▴" : "▾"}
+                                        </button>
+                                        {necklineOpen && (
+                                            <div className={styles.necklineGrid}>
+                                                {product.necklineShapes.map((ns: any) => (
+                                                    <button key={ns.name}
+                                                        className={`${styles.necklineOption} ${selectedNeckline === ns.name ? styles.selected : ""}`}
+                                                        onClick={() => { setSelectedNeckline(ns.name); setNecklineOpen(false); }}>
+                                                        {ns.image && <img src={ns.image} alt={ns.name} />}
+                                                        <span>{ns.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Stitch */}
+                                <div>
+                                    <label className={styles.optLabel}>Tailoring / Stitching</label>
+                                    <div className={styles.stitchRow}>
+                                        {(["yes", "no"] as const).map(v => (
+                                            <label key={v} className={`${styles.stitchLabel} ${stitch === v ? styles.stitchSelected : ""}`}>
+                                                <input type="radio" name="stitch" value={v} checked={stitch === v} onChange={() => setStitch(v)} style={{ display: "none" }} />
+                                                {v === "yes" ? `✂️ Bespoke (+${formatPrice(product.stitchPrice, country)})` : "No Stitching"}
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {stitch === "yes" && (
+                                        <div className={styles.stitchFields}>
+                                            <div className={styles.stitchNote}>Tailoring service requested. Please provide measurements in <strong>cm</strong>.</div>
+                                            {["Chest", "Waist", "Hips", "Shoulder Width", "Sleeve Length", "Total Length"].map(m => (
+                                                <div key={m}>
+                                                    <label className={styles.optLabel}>{m}</label>
+                                                    <input className="formInput" type="number" placeholder="0.0"
+                                                        value={tailorMeasurements[m] ?? ""}
+                                                        onChange={e => setTailorMeasurements(p => ({ ...p, [m]: e.target.value }))} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Accessories */}
                         {product.accessories.length > 0 && (
-                            <div>
+                            <div style={{ marginTop: "1.5rem" }}>
                                 <label className={styles.optLabel}>Signature Accessories</label>
                                 <div className={styles.accessoriesRow}>
                                     {product.accessories.map((acc: any) => {

@@ -41,8 +41,13 @@ export type Product = {
     stitchPrice: number;
     accessories: { name: string; price: number }[];
     shippingNote: string;
+    shippingCost: number;
     mostSelling?: boolean;
     specs: { label: string; value: string }[];
+    sizes: string[];
+    colors: string[];
+    isPremade?: boolean;
+    options: { title: string; values: string[] }[];
 };
 
 export const PRODUCTS: Product[] = [
@@ -82,6 +87,7 @@ export const PRODUCTS: Product[] = [
             { name: "Traditional Cap", price: 2.0 },
         ],
         shippingNote: "Free shipping on orders above 10 OMR",
+        shippingCost: 2,
         mostSelling: true,
         specs: [
             { label: "Material", value: "Egyptian Cotton 100%" },
@@ -89,6 +95,9 @@ export const PRODUCTS: Product[] = [
             { label: "Origin", value: "Made in Oman" },
             { label: "Sizes", value: "XS – 3XL" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "002",
@@ -119,6 +128,7 @@ export const PRODUCTS: Product[] = [
             { name: "Cufflinks (Gold)", price: 4.0 },
         ],
         shippingNote: "Ships within 2-3 business days",
+        shippingCost: 2,
         mostSelling: true,
         specs: [
             { label: "Material", value: "Linen Mix 60/40" },
@@ -126,6 +136,9 @@ export const PRODUCTS: Product[] = [
             { label: "Origin", value: "Made in UAE" },
             { label: "Sizes", value: "S – 4XL" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "003",
@@ -158,6 +171,7 @@ export const PRODUCTS: Product[] = [
             { name: "Cuffs (Lace)", price: 2.5 },
         ],
         shippingNote: "Express delivery available",
+        shippingCost: 2,
         mostSelling: true,
         specs: [
             { label: "Material", value: "Nida + Chiffon" },
@@ -165,6 +179,9 @@ export const PRODUCTS: Product[] = [
             { label: "Origin", value: "Made in Saudi Arabia" },
             { label: "Sizes", value: "XS – 2XL" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "004",
@@ -194,12 +211,16 @@ export const PRODUCTS: Product[] = [
             { name: "Belt (Embroidered)", price: 4.5 },
         ],
         shippingNote: "Ships within 3-5 business days",
+        shippingCost: 2,
         specs: [
             { label: "Material", value: "Crepe 100%" },
             { label: "Care", value: "Dry clean only" },
             { label: "Origin", value: "Made in Egypt" },
             { label: "Sizes", value: "XS – 3XL" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "005",
@@ -228,6 +249,7 @@ export const PRODUCTS: Product[] = [
             { name: "Cufflinks (Silver)", price: 2.5 },
         ],
         shippingNote: "Free standard shipping",
+        shippingCost: 2,
         mostSelling: true,
         specs: [
             { label: "Material", value: "Polyester 80% / Cotton 20%" },
@@ -235,6 +257,9 @@ export const PRODUCTS: Product[] = [
             { label: "Origin", value: "Made in Turkey" },
             { label: "Sizes", value: "S – 3XL" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "006",
@@ -263,6 +288,7 @@ export const PRODUCTS: Product[] = [
             { name: "Belt (Kids)", price: 1.0 },
         ],
         shippingNote: "Ships within 2 business days",
+        shippingCost: 1,
         mostSelling: true,
         specs: [
             { label: "Material", value: "Egyptian Cotton 100%" },
@@ -270,6 +296,9 @@ export const PRODUCTS: Product[] = [
             { label: "Origin", value: "Made in Oman" },
             { label: "Sizes", value: "2Y – 14Y" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "007",
@@ -297,12 +326,16 @@ export const PRODUCTS: Product[] = [
             { name: "Silver Agal", price: 8.0 },
         ],
         shippingNote: "Custom made — 7 to 14 days delivery",
+        shippingCost: 3,
         specs: [
             { label: "Material", value: "Wool Blend 70/30" },
             { label: "Care", value: "Dry clean only" },
             { label: "Origin", value: "Made in Kuwait" },
             { label: "Sizes", value: "S – 3XL (Custom)" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
     {
         id: "008",
@@ -331,12 +364,16 @@ export const PRODUCTS: Product[] = [
             { name: "Lace Headband", price: 1.5 },
         ],
         shippingNote: "Currently out of stock",
+        shippingCost: 2,
         specs: [
             { label: "Material", value: "Nida + Lace" },
             { label: "Care", value: "Machine wash cold" },
             { label: "Origin", value: "Made in UAE" },
             { label: "Sizes", value: "2Y – 16Y" },
         ],
+        sizes: [],
+        colors: [],
+        options: [],
     },
 ];
 

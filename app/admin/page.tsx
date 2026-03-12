@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { formatPrice } from "@/lib/store";
+import { useStore, formatPrice } from "@/lib/store";
 import { COUNTRIES } from "@/lib/data";
 
 import styles from "./admin.module.css";
@@ -25,13 +25,17 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const token = useStore.getState().token;
+        const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+        
         Promise.all([
-            fetch("/api/admin/stats").then(r => r.json()),
-            fetch("/api/admin/stats/advanced").then(r => r.json())
+            fetch("/api/admin/stats", { headers }).then(r => r.json()),
+            fetch("/api/admin/stats/advanced", { headers }).then(r => r.json())
         ]).then(([s, a]) => {
             setStats(s);
             setAdvStats(a);
-        }).finally(() => setLoading(false));
+        }).catch(err => console.error("Stats fetch error:", err))
+          .finally(() => setLoading(false));
     }, []);
 
     const cards = [
@@ -87,7 +91,7 @@ export default function AdminDashboard() {
                                 title={`${d.date}: ${formatPrice(d.revenue, omr)}`}
                             />
                         ))}
-                        {(!advStats || advStats.dailyRevenue.length === 0) && <p style={{ width: '100%', textAlign: 'center', color: 'var(--admin-text-muted)' }}>No data available for charts</p>}
+                        {(!advStats?.dailyRevenue?.length) && <p style={{ width: '100%', textAlign: 'center', color: 'var(--admin-text-muted)' }}>No data available for charts</p>}
                     </div>
                 </div>
 

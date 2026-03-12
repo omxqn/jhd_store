@@ -1,10 +1,10 @@
 .container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 120px 2rem 80px;
+    padding: 120px 2rem 100px;
     display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 4rem;
+    grid-template-columns: 280px 1fr;
+    gap: 5rem;
 }
 
 .sidebar {
@@ -14,12 +14,14 @@
 }
 
 .sidebarTitle {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 1.5rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(198, 40, 40, 0.1);
 }
 
 .nav {
@@ -31,14 +33,17 @@
 .navLink {
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 300ms ease;
+    font-size: 1.25rem; /* ~20px */
+    font-weight: 600;
+    transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .navLink:hover {
     color: var(--primary);
-    transform: translateX(-5px);
+    transform: translateX(-8px);
 }
 
 .header {
@@ -47,9 +52,11 @@
 
 .title {
     font-family: var(--ff-serif);
-    font-size: 3rem;
-    color: var(--secondary);
-    margin-bottom: 0.5rem;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    line-height: 1.1;
 }
 
 .lastUpdate {
@@ -64,26 +71,38 @@
 }
 
 .section {
-    padding-bottom: 4rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 3rem;
+    background: rgba(249, 241, 200, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(193, 39, 45, 0.05);
+    transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.section:last-child {
-    border: none;
+.section:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
 }
 
 .sectionTitle {
     font-family: var(--ff-serif);
-    font-size: 1.75rem;
+    font-size: 2.5rem;
+    font-weight: 700;
     color: var(--secondary);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .sectionBody {
     color: var(--text-muted);
-    line-height: 1.8;
-    font-size: 1.05rem;
+    line-height: 1.6;
+    font-size: 1.5rem; /* ~24px Brand font */
     white-space: pre-line;
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {

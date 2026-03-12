@@ -11,19 +11,33 @@ type SortKey = "cheapest" | "expensive" | "selling" | "rating";
 function normalizeProduct(p: any) {
     const safeJson = (v: any, fb: any) => { if (Array.isArray(v)) return v; try { return JSON.parse(v); } catch { return fb; } };
     return {
-        id: String(p.id), name: p.name, category: p.category,
+        id: String(p.id),
+        name: p.name,
+        category: p.category,
         price: parseFloat(p.price) || 0,
         oldPrice: p.old_price ? parseFloat(p.old_price) : null,
         stitchPrice: parseFloat(p.stitch_price) || 0,
         availability: p.availability || "available",
         shippingNote: p.shipping_note || "",
-        description: p.description || "", details: p.details || "",
+        description: p.description || "",
+        details: p.details || "",
         images: safeJson(p.images, [p.images].filter(Boolean)),
         fabricTypes: safeJson(p.fabric_types, []),
-        necklineShapes: safeJson(p.neckline_shapes, []).map((n: any) => typeof n === "string" ? { name: n, image: "" } : n),
+        necklineShapes: safeJson(p.neckline_shapes, []).map((n: any) =>
+            typeof n === "string" ? { name: n, image: "" } : n
+        ),
         accessories: safeJson(p.accessories, [{ name: "None", price: 0 }]),
-        specs: safeJson(p.specs, []), badges: safeJson(p.badges, []),
-        mostSelling: !!p.most_selling, sold: p.sold || 0, rating: p.rating || 0, stock: p.stock,
+        specs: safeJson(p.specs, []),
+        badges: safeJson(p.badges, []),
+        mostSelling: !!p.most_selling,
+        sold: p.sold || 0,
+        rating: p.rating || 0,
+        stock: p.stock,
+        shippingCost: parseFloat(p.shipping_cost) || 2,
+        sizes: safeJson(p.sizes, []),
+        colors: safeJson(p.colors, []),
+        options: safeJson(p.options, []),
+        isPremade: !!p.is_premade,
     };
 }
 

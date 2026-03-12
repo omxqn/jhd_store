@@ -29,15 +29,15 @@
 
 .badge {
     display: inline-block;
-    padding: 6px 16px;
+    padding: 12px 28px;
     background: rgba(198, 40, 40, 0.08);
     color: var(--primary);
     border-radius: 99px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: 1.6rem; /* Double size */
+    font-weight: 900;
+    margin-bottom: 2rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.2em;
 }
 
 .title {
@@ -55,7 +55,8 @@
 
 .subtitle {
     color: var(--text-muted);
-    font-size: 1rem;
+    font-size: 1.25rem; /* Increased from 1rem */
+    margin-top: 1rem;
 }
 
 .emptyState {
@@ -125,14 +126,15 @@
 }
 
 .orderId {
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: 2.2rem; /* Double size */
+    font-weight: 800;
     color: var(--secondary);
 }
 
 .orderDate {
-    font-size: 0.85rem;
+    font-size: 1.1rem; /* Increased from 0.85rem */
     color: var(--text-faint);
+    margin-top: 4px;
 }
 
 .statusGroup {
@@ -140,18 +142,18 @@
 }
 
 .statusBadge {
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 6px 16px;
+    font-size: 1.5rem; /* Double size */
+    font-weight: 900;
+    padding: 12px 30px;
     border-radius: 99px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 2px;
 }
 
 .orderTotal {
-    margin-top: 0.75rem;
-    font-size: 1.4rem;
-    font-weight: 700;
+    margin-top: 1.5rem;
+    font-size: 2.5rem; /* Ultra scaled */
+    font-weight: 900;
     color: var(--primary);
 }
 
@@ -165,10 +167,11 @@
 .previewItem {
     background: #fcfcfc;
     border: 1px solid rgba(0, 0, 0, 0.04);
-    padding: 6px 14px;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    padding: 8px 18px;
+    border-radius: 12px;
+    font-size: 1.1rem; /* Increased from 0.9rem */
     color: var(--text-muted);
+    font-weight: 500;
 }
 
 .qty {
@@ -275,8 +278,8 @@
 }
 
 .detailsLink {
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 1.15rem; /* Increased from 0.85rem */
+    font-weight: 800;
     color: var(--primary);
     opacity: 0.8;
     transition: opacity 300ms ease;

@@ -37,7 +37,10 @@ export default function PolicyPage() {
                 <h2 className={styles.sidebarTitle}>الأقسام</h2>
                 <nav className={styles.nav}>
                     {POLICIES.map(p => (
-                        <a key={p.id} href={`#${p.id}`} className={styles.navLink}>{p.title}</a>
+                        <a key={p.id} href={`#${p.id}`} className={styles.navLink}>
+                            <span className={styles.dot}>•</span>
+                            {p.title}
+                        </a>
                     ))}
                 </nav>
             </motion.div>
@@ -63,7 +66,10 @@ export default function PolicyPage() {
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ delay: i * 0.1 }}
                         >
-                            <h2 className={styles.sectionTitle}>{p.title}</h2>
+                            <h2 className={styles.sectionTitle}>
+                                <span style={{ color: "var(--primary)" }}>✦</span>
+                                {p.title}
+                            </h2>
                             <div className={styles.sectionBody}>
                                 {p.content}
                             </div>

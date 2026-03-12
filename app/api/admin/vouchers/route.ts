@@ -3,7 +3,26 @@ import { query } from "@/lib/db";
 import { requireAuth, JWTPayload } from "@/lib/auth";
 
 async function getVouchers(_req: NextRequest, _auth: JWTPayload) {
-    const vouchers = await query("SELECT * FROM vouchers ORDER BY created_at DESC");
+    // Get all vouchers with usage count
+    const vouchers = await query(`
+        SELECT v.*, 
+        (SELECT COUNT(*) FROM voucher_redemptions WHERE voucher_id = v.id) as use_count
+        FROM vouchers v 
+        ORDER BY v.created_at DESC
+    `);
+
+    // For each voucher, get the latest redemptions for the usage log
+    for (const v of vouchers as any[]) {
+        v.redemptions = await query(`
+            SELECT vr.redeemed_at, o.id as order_id, o.name as customer_name, o.email as customer_email
+            FROM voucher_redemptions vr
+            JOIN orders o ON vr.order_id = o.id
+            WHERE vr.voucher_id = ?
+            ORDER BY vr.redeemed_at DESC
+            LIMIT 50
+        `, [v.id]);
+    }
+
     return NextResponse.json({ vouchers });
 }
 

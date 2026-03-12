@@ -65,94 +65,152 @@ function OrderDetailContent() {
         const { default: autoTable } = await import("jspdf-autotable");
         const doc = new jsPDF();
 
-        // Banner
-        doc.setFillColor(26, 26, 26);
-        doc.rect(0, 0, 210, 40, "F");
-        doc.setTextColor(198, 40, 40); doc.setFontSize(26); doc.setFont("helvetica", "bold");
-        doc.text("JHD.LINE", 14, 25);
-        doc.setFontSize(10); doc.setTextColor(249, 241, 200);
-        doc.text("Premium Bespoke Fashion | jhd-line.com", 14, 33);
-        doc.setTextColor(198, 40, 40); doc.setFontSize(16);
-        doc.text("INVOICE", 180, 25, { align: "right" });
+        // 0. Use Standard Professional Font
+        doc.setFont("helvetica", "normal");
 
-        // Order Info
-        doc.setTextColor(40, 40, 40); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(`Order: #${order.id}`, 14, 55);
-        doc.text(`Date: ${new Date(order.created_at).toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}`, 14, 62);
-        doc.text(`Payment: ${order.payment_method?.toUpperCase() || "CREDIT CARD"}`, 14, 69);
-
-        // Status Badge
-        doc.setFillColor(198, 40, 40);
-        doc.roundedRect(160, 50, 36, 10, 2, 2, "F");
-        doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont("helvetica", "bold");
-        doc.text(order.status.toUpperCase(), 178, 56.5, { align: "center" });
-
-        doc.setTextColor(40, 40, 40); doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("Customer Information:", 14, 90);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        doc.text(`${order.name}`, 14, 97);
-        doc.text(`${order.email}`, 14, 104);
-        doc.text(`Phone: ${order.phone || "-"}`, 14, 111);
-        doc.text(`Shipping: ${order.address || "-"}, ${order.city || "-"}`, 14, 118);
-
-        // Table
-        autoTable(doc, {
-            startY: 135,
-            head: [["Item Description", "Specifications", "Price", "Qty", "Total"]],
-            body: items.map(item => {
-                const specs = [
-                    item.fabric_type,
-                    item.neckline,
-                    item.fabric_length ? `L: ${item.fabric_length}` : null,
-                    item.neck_size ? `N: ${item.neck_size}` : null,
-                    item.stitch ? "Premium" : null
-                ].filter(Boolean).join(" | ");
-                return [
-                    item.name,
-                    specs,
-                    `${country.currency} ${(item.price * country.rate).toFixed(2)}`,
-                    String(item.quantity),
-                    `${country.currency} ${(item.price * item.quantity * country.rate).toFixed(2)}`,
-                ];
-            }),
-            styles: { fontSize: 8, textColor: [40, 40, 40], cellPadding: 3 },
-            headStyles: { fillColor: [26, 26, 26], textColor: [198, 40, 40], fontStyle: "bold" },
-            alternateRowStyles: { fillColor: [252, 250, 235] },
-            columnStyles: {
-                0: { cellWidth: 50 },
-                1: { cellWidth: 65 },
-                2: { halign: "right" },
-                3: { halign: "center" },
-                4: { halign: "right", cellWidth: 30 }
-            }
-        });
-
-        const finalY = (doc as any).lastAutoTable.finalY + 15;
-        const subtotal = order.subtotal || (order.total / 1.05); // Estimate if subtotal not in object
-        const vat = order.total - subtotal;
-        const discount = order.discount || 0;
-
-        doc.setFontSize(10); doc.setTextColor(80, 80, 80);
-        doc.text("Subtotal:", 135, finalY);
-        doc.text(`${country.currency} ${(subtotal * country.rate).toFixed(2)}`, 195, finalY, { align: "right" });
-
-        if (discount > 0) {
-            doc.text("Discount:", 135, finalY + 8);
-            doc.text(`-${country.currency} ${(discount * country.rate).toFixed(2)}`, 195, finalY + 8, { align: "right" });
+        // Load Logo for PDF
+        let logoBase64 = "";
+        try {
+            const logoRes = await fetch("/heart-logo.png");
+            const logoBlob = await logoRes.blob();
+            logoBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(logoBlob);
+            });
+        } catch (e) {
+            console.error("Logo load failed:", e);
         }
 
-        doc.text("VAT (5%):", 135, finalY + 16);
-        doc.text(`${country.currency} ${(vat * country.rate).toFixed(2)}`, 195, finalY + 16, { align: "right" });
+        // 1. Background
+        doc.setFillColor(253, 245, 206);
+        doc.rect(0, 0, 210, 297, "F");
 
-        doc.setDrawColor(198, 40, 40); doc.setLineWidth(0.5);
-        doc.line(135, finalY + 20, 195, finalY + 20);
+        // 2. Branding Header
+        doc.setFillColor(198, 40, 101);
+        doc.rect(0, 0, 210, 40, "F");
 
-        doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(198, 40, 40);
-        doc.text("TOTAL AMOUNT:", 135, finalY + 28);
-        doc.text(`${country.currency} ${(order.total * country.rate).toFixed(2)}`, 195, finalY + 28, { align: "right" });
+        if (logoBase64) {
+            doc.addImage(logoBase64, "PNG", 14, 8, 24, 24);
+        }
 
-        // Footer Note
-        doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.setFont("helvetica", "italic");
-        doc.text("Thank you for choosing JHD.LINE. Your bespoke journey continues.", 105, 280, { align: "center" });
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(28);
+        doc.setFont("helvetica", "bold");
+        doc.text("JHD.LINE", logoBase64 ? 42 : 105, 25, { align: logoBase64 ? "left" : "center" });
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("PREMIUM BESPOKE FASHION", logoBase64 ? 42 : 105, 33, { align: logoBase64 ? "left" : "center" });
+
+        // 3. Invoice Header
+        doc.setTextColor(23, 35, 112);
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("OFFICIAL INVOICE", 14, 55);
+
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Order Number: #${order.id}`, 14, 65);
+
+        // 4. Info Cards
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(14, 75, 85, 38, 3, 3, "F");
+        doc.roundedRect(111, 75, 85, 38, 3, 3, "F");
+
+        doc.setTextColor(23, 35, 112);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("ORDER SUMMARY", 18, 83);
+        doc.text("BILL TO / CUSTOMER", 115, 83);
+
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Date of Issue: ${new Date(order.created_at).toLocaleDateString()}`, 18, 90);
+        doc.text(`Payment: ${order.payment_method?.toUpperCase() || "CREDIT CARD"}`, 18, 96);
+        doc.text(`Status: ${order.status?.toUpperCase()}`, 18, 102);
+
+        doc.text(`${order.name || order.customer_name || "Customer"}`, 115, 90);
+        doc.text(`${order.email || order.customer_email || ""}`, 115, 96);
+        doc.text(`Phone: ${order.phone || order.customer_phone || "N/A"}`, 115, 102);
+        doc.text(`Location: ${order.city || ""}`, 115, 108);
+
+        // 5. Items Table
+        autoTable(doc, {
+            startY: 125,
+            head: [['Item Name', 'Specs', 'Qty', 'Total']],
+            body: items.map(item => [
+                item.name,
+                [item.fabric_type, item.neckline].filter(Boolean).join(" | "),
+                item.quantity,
+                `${country.currency} ${(item.price * item.quantity * country.rate).toFixed(2)}`
+            ]),
+            styles: { font: "helvetica", fontSize: 9, cellPadding: 4, textColor: [40, 40, 40] },
+            headStyles: { fillColor: [23, 35, 112], textColor: [255, 255, 255], fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [250, 248, 240] },
+            margin: { left: 14, right: 14 }
+        });
+
+        // 6. Calculations
+        const finalY = (doc as any).lastAutoTable.finalY + 12;
+        const subtotal = Number(order.subtotal) || 0;
+        const discount = Number(order.discount) || 0;
+        const shippingFee = Number(order.shipping_fee) || 0;
+        const netAmount = Math.max(0, (subtotal + shippingFee) - discount);
+        const vat = netAmount * 0.05;
+        const grandTotal = netAmount + vat;
+
+        doc.setTextColor(23, 35, 112);
+        doc.setFontSize(10);
+        const labelX = 14;
+        const valueX = 75;
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Gross Subtotal:", labelX, finalY);
+        doc.text(`${country.currency} ${(subtotal * country.rate).toFixed(2)}`, valueX, finalY);
+
+        doc.setDrawColor(220, 220, 220);
+        let currentY = finalY + 4;
+        if (discount > 0) {
+            doc.line(labelX, currentY, valueX + 35, currentY);
+            currentY += 6;
+            doc.setTextColor(198, 40, 101); // Red
+            doc.text(`Promo Discount (${order.voucher_code?.toUpperCase()}):`, labelX, currentY);
+            doc.text(`- ${country.currency} ${(discount * country.rate).toFixed(2)}`, valueX, currentY);
+            doc.setTextColor(23, 35, 112); // Reset to Blue
+            currentY += 4;
+            doc.line(labelX, currentY, valueX + 35, currentY);
+            currentY += 6;
+        } else {
+            doc.line(labelX, currentY, valueX + 35, currentY);
+            currentY += 6;
+        }
+
+        doc.text("VAT (5%):", labelX, currentY);
+        doc.text(`${country.currency} ${(vat * country.rate).toFixed(2)}`, valueX, currentY);
+        currentY += 4;
+        doc.line(labelX, currentY, valueX + 35, currentY);
+        currentY += 6;
+
+        doc.text("Logistics / Shipping:", labelX, currentY);
+        doc.text(`${country.currency} ${(shippingFee * country.rate).toFixed(2)}`, valueX, currentY);
+        currentY += 12;
+
+        // Total
+        doc.setFillColor(198, 40, 101);
+        doc.roundedRect(labelX - 2, currentY - 8, 85, 16, 2, 2, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.text("TOTAL AMOUNT:", labelX + 2, currentY + 3);
+        doc.text(`${country.currency} ${(grandTotal * country.rate).toFixed(2)}`, valueX + 2, currentY + 3);
+
+        // 7. Footer
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("Thank you for choosing JHD.LINE", 105, 280, { align: "center" });
+        doc.text("www.jhd-line.com", 105, 286, { align: "center" });
 
         doc.save(`JHD-LINE-INVOICE-${order.id}.pdf`);
     };
@@ -254,15 +312,21 @@ function OrderDetailContent() {
                             <div className={styles.summaryBox}>
                                 <div className={styles.summaryRow}>
                                     <span>المجموع الفرعي</span>
-                                    <span>{formatPrice((order.total + (order.discount || 0) + (order.refunded_amount || 0)) * 0.95, country)}</span>
+                                    <span>{formatPrice(Number(order.subtotal) || (Number(order.total) - (Number(order.shipping_fee) || 0)) * 0.95, country)}</span>
                                 </div>
                                 <div className={styles.summaryRow}>
                                     <span>ضريبة القيمة المضافة (5%)</span>
-                                    <span>{formatPrice((order.total + (order.discount || 0) + (order.refunded_amount || 0)) * 0.05, country)}</span>
+                                    <span>{formatPrice((Number(order.subtotal) ? Number(order.subtotal) * 0.0526 : (Number(order.total) - (Number(order.shipping_fee) || 0)) * 0.05), country)}</span>
                                 </div>
+                                {order.shipping_fee > 0 && (
+                                    <div className={styles.summaryRow}>
+                                        <span>رسوم الشحن</span>
+                                        <span>{formatPrice(order.shipping_fee, country)}</span>
+                                    </div>
+                                )}
                                 {order.discount > 0 && (
                                     <div className={styles.summaryRow} style={{ color: "var(--primary)" }}>
-                                        <span>خصم</span>
+                                        <span>خصم {order.voucher_code && `(${order.voucher_code.toUpperCase()})`}</span>
                                         <span>-{formatPrice(order.discount, country)}</span>
                                     </div>
                                 )}
@@ -282,10 +346,10 @@ function OrderDetailContent() {
                         <div className={styles.section}>
                             <h3 className={styles.sectionTitle}>معلومات الشحن</h3>
                             <div className={styles.shippingBox}>
-                                <p><strong>الاسم:</strong> {order.name}</p>
+                                <p><strong>الاسم:</strong> {order.name || "—"}</p>
                                 <p><strong>الهاتف:</strong> {order.phone || "—"}</p>
-                                <p><strong>العنوان:</strong> {order.address}, {order.city}</p>
-                                <p><strong>طريقة الدفع:</strong> {order.payment_method === 'thawani' ? 'ثواني (دفع إلكتروني)' : order.payment_method}</p>
+                                <p><strong>العنوان:</strong> {[order.address, order.city].filter(Boolean).join(", ") || "—"}</p>
+                                <p><strong>طريقة الدفع:</strong> {order.payment_method === 'thawani' ? 'ثواني (دفع إلكتروني)' : (order.payment_method || "—")}</p>
                             </div>
                         </div>
                     </div>

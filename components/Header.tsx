@@ -95,9 +95,9 @@ export function Header() {
         <>
             <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
                 <div className={styles.inner}>
-                    {/* Brand Logo - Added to main header */}
+                    {/* Brand Logo */}
                     <Link href="/" className={styles.logo} title="JHD LINE">
-                        <div className={styles.logoMark} style={{ background: "var(--primary)" }}>J</div>
+                        <img src="/heart-logo.png" alt="JHD LINE" className={styles.logoImg} />
                         <div className={`${styles.logoText} ${styles.desktopOnly}`}>JHD <span>LINE</span></div>
                     </Link>
 
@@ -177,29 +177,53 @@ export function Header() {
                             {profileOpen && (
                                 <div className={styles.profilePanel}>
                                     <div className={styles.profileHeader}>
-                                        <div className={styles.avatar} style={{ background: "rgba(198, 40, 40, 0.1)", color: "var(--primary)" }}>{authUser?.name?.charAt(0) ?? "G"}</div>
-                                        <div>
-                                            <div className={styles.profileName}>{authUser?.name ?? "Guest"}</div>
-                                            <div className={styles.profileEmail}>{authUser?.email ?? "Welcome"}</div>
+                                        <div className={styles.avatar}>{authUser?.name?.charAt(0) ?? "G"}</div>
+                                        <div className={styles.profileMeta}>
+                                            <div className={styles.profileName}>{authUser?.name ?? "Guest User"}</div>
+                                            <div className={styles.profileEmail}>{authUser?.email ?? "Welcome to Jihad Store"}</div>
                                         </div>
                                     </div>
-                                    <nav className={styles.profileNav}>
-                                        <Link href="/myaccount/notifications" onClick={() => setProfileOpen(false)}><span className={styles.navIcon}>•</span><span>Notifications</span></Link>
-                                        <Link href="/myaccount/my-orders" onClick={() => setProfileOpen(false)}><span className={styles.navIcon}>•</span><span>My Orders</span></Link>
-                                        <Link href="/myaccount/wishlist" onClick={() => setProfileOpen(false)}><span className={styles.navIcon}>•</span><span>Wishlist</span></Link>
+                                    <div className={styles.profileBody}>
+                                        <div className={styles.navGroup}>
+                                            <div className={styles.groupLabel}>Account Settings</div>
+                                            <nav className={styles.profileNav}>
+                                                <Link href="/myaccount/notifications" onClick={() => setProfileOpen(false)}>
+                                                    <span className={styles.navIcon}>🔔</span>
+                                                    <span>Notifications</span>
+                                                    {unreadNotifs > 0 && <span className={styles.notifBadge}>{unreadNotifs}</span>}
+                                                </Link>
+                                                <Link href="/myaccount/my-orders" onClick={() => setProfileOpen(false)}>
+                                                    <span className={styles.navIcon}>📦</span>
+                                                    <span>My Orders</span>
+                                                </Link>
+                                                <Link href="/myaccount/wishlist" onClick={() => setProfileOpen(false)}>
+                                                    <span className={styles.navIcon}>❤️</span>
+                                                    <span>Wishlist</span>
+                                                </Link>
+                                            </nav>
+                                        </div>
+                                        
                                         {(authUser?.role === "admin" || authUser?.role === "super_admin") && (
-                                            <Link href="/admin" onClick={() => setProfileOpen(false)}><span className={styles.navIcon}>•</span><span>Admin Panel</span></Link>
+                                            <div className={styles.navGroup}>
+                                                <div className={styles.groupLabel}>Management</div>
+                                                <nav className={styles.profileNav}>
+                                                    <Link href="/admin" onClick={() => setProfileOpen(false)}>
+                                                        <span className={styles.navIcon}>🛠️</span>
+                                                        <span>Admin Panel</span>
+                                                    </Link>
+                                                </nav>
+                                            </div>
                                         )}
-                                    </nav>
+                                    </div>
                                     <div className={styles.profileFooter}>
                                         {authUser ? (
                                             <button className={styles.signoutBtn} onClick={async () => {
                                                 await fetch("/api/auth/logout", { method: "POST" });
                                                 clearAuth(); setProfileOpen(false); router.push("/");
-                                                toast("Signed out");
+                                                toast.success("Signed out successfully");
                                             }}>Sign Out</button>
                                         ) : (
-                                            <Link href="/login" className="btn btnPrimary btnBlock btnSm" onClick={() => setProfileOpen(false)}>Login</Link>
+                                            <Link href="/login" className="btn btnPrimary btnBlock btnSm" onClick={() => setProfileOpen(false)}>Login / Register</Link>
                                         )}
                                     </div>
                                 </div>
@@ -217,30 +241,98 @@ export function Header() {
             {mobileOpen && (
                 <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
                     <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
-                        <div className={styles.logo} style={{ marginBottom: "2rem" }}>
-                            <div className={styles.logoMark} style={{ background: "var(--primary)" }}>J</div>
-                            <div className={styles.logoText}>JHD <span>LINE</span></div>
+                        <button className={styles.mobileClose} onClick={() => setMobileOpen(false)}>✕</button>
+                        
+                        <div className={styles.mobileDrawerHeader}>
+                            {authUser ? (
+                                <div className={styles.mobileUserIdentity}>
+                                    <div className={styles.avatarLarge}>{authUser.name.charAt(0)}</div>
+                                    <div className={styles.mobileUserMeta}>
+                                        <div className={styles.mobileUserNameLuxe}>{authUser.name}</div>
+                                        <div className={styles.mobileUserEmailLuxe}>{authUser.email}</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Link href="/login" className={styles.mobileGuestHero} onClick={closeAll}>
+                                    <div className={styles.guestIcon}>✨</div>
+                                    <div className={styles.guestMeta}>
+                                        <div className={styles.guestTitle}>Welcome to JHD LINE</div>
+                                        <div className={styles.guestSub}>Login to your boutique world</div>
+                                    </div>
+                                </Link>
+                            )}
                         </div>
 
-                        <nav className={styles.profileNav} style={{ padding: 0 }}>
-                            <Link href="/" className={styles.mobileNavLink} onClick={closeAll}>المتجر (Store)</Link>
-                            <Link href="/policy" className={styles.mobileNavLink} onClick={closeAll}>سياسة الطلب (Policy)</Link>
-                            <Link href="/contact" className={styles.mobileNavLink} onClick={closeAll}>الاستفسارات العامة (Inquiries)</Link>
-                            <hr style={{ margin: "1rem 0", border: "none", borderTop: "1px solid rgba(198, 40, 40, 0.1)" }} />
-                            <Link href="/myaccount/my-orders" className={styles.mobileNavLink} onClick={closeAll}>My Orders</Link>
-                            <Link href="/myaccount/notifications" className={styles.mobileNavLink} onClick={closeAll}>Notifications</Link>
-                            <Link href="/cart" className={styles.mobileNavLink} onClick={closeAll}>Cart ({cartCount})</Link>
-                            <Link href="/myaccount/wishlist" className={styles.mobileNavLink} onClick={closeAll}>Wishlist</Link>
-                        </nav>
+                        <div className={styles.mobileBody}>
+                            <div className={styles.drawerSection}>
+                                <div className={styles.sectionLabel}>The Collection</div>
+                                <nav className={styles.mobilePrimaryNav}>
+                                    <Link href="/" className={styles.mobileNavLink} onClick={closeAll}>
+                                        <span className={styles.navMain}>المتجر</span>
+                                        <span className={styles.navSub}>Browse Collection</span>
+                                    </Link>
+                                    <Link href="/policy" className={styles.mobileNavLink} onClick={closeAll}>
+                                        <span className={styles.navMain}>سياسة الطلب</span>
+                                        <span className={styles.navSub}>Order Policies</span>
+                                    </Link>
+                                    <Link href="/contact" className={styles.mobileNavLink} onClick={closeAll}>
+                                        <span className={styles.navMain}>تواصل معنا</span>
+                                        <span className={styles.navSub}>Contact & Support</span>
+                                    </Link>
+                                </nav>
+                            </div>
 
-                        <div className={styles.profileFooter} style={{ marginTop: "auto", background: "none", padding: 0 }}>
-                            {authUser ? (
-                                <button className={styles.signoutBtn}
-                                    onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); clearAuth(); closeAll(); router.push("/"); }}>
-                                    Sign Out
+                            <div className={styles.mobileDivider} />
+
+                            <div className={styles.drawerSection}>
+                                <div className={styles.sectionLabel}>My Boutique World</div>
+                                <nav className={styles.mobileDashboardNav}>
+                                    <Link href="/myaccount/notifications" className={styles.dashboardLink} onClick={closeAll}>
+                                        <span className={styles.dashboardIcon}>🔔</span>
+                                        <span className={styles.dashboardText}>Notifications</span>
+                                        {unreadNotifs > 0 && <span className={styles.notifBadgeSmall}>{unreadNotifs}</span>}
+                                    </Link>
+                                    <Link href="/myaccount/my-orders" className={styles.dashboardLink} onClick={closeAll}>
+                                        <span className={styles.dashboardIcon}>📦</span>
+                                        <span className={styles.dashboardText}>My Orders</span>
+                                    </Link>
+                                    <Link href="/myaccount/wishlist" className={styles.dashboardLink} onClick={closeAll}>
+                                        <span className={styles.dashboardIcon}>❤️</span>
+                                        <span className={styles.dashboardText}>Wishlist</span>
+                                    </Link>
+                                    <Link href="/cart" className={styles.dashboardLink} onClick={closeAll}>
+                                        <span className={styles.dashboardIcon}>💼</span>
+                                        <span className={styles.dashboardText}>Shopping Cart</span>
+                                        {cartCount > 0 && <span className={styles.notifBadgeSmall}>{cartCount}</span>}
+                                    </Link>
+                                </nav>
+                            </div>
+
+                            {(authUser?.role === "admin" || authUser?.role === "super_admin") && (
+                                <>
+                                    <div className={styles.mobileDivider} />
+                                    <div className={styles.drawerSection}>
+                                        <div className={styles.sectionLabel}>Management</div>
+                                        <nav className={styles.mobileDashboardNav}>
+                                            <Link href="/admin" className={styles.dashboardLink} onClick={closeAll}>
+                                                <span className={styles.dashboardIcon}>🛠️</span>
+                                                <span className={styles.dashboardText}>Admin Panel</span>
+                                            </Link>
+                                        </nav>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className={styles.mobileDrawerFooter}>
+                            {authUser && (
+                                <button className={styles.luxeSignoutBtn} onClick={async () => { 
+                                    await fetch("/api/auth/logout", { method: "POST" }); 
+                                    clearAuth(); closeAll(); router.push("/"); 
+                                }}>
+                                    <span>Sign Out of Boutique</span>
+                                    <span className={styles.signoutArrow}>→</span>
                                 </button>
-                            ) : (
-                                <Link href="/login" className="btn btnPrimary btnBlock" onClick={closeAll}>Login / Register</Link>
                             )}
                         </div>
                     </div>

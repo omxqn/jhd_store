@@ -16,9 +16,10 @@
 
 .title {
     font-family: var(--ff-serif);
-    font-size: 2.5rem;
+    font-size: 4.5rem; /* Ultra scaled */
+    /* Increased from 2.5rem */
     color: var(--secondary);
-    font-weight: 500;
+    font-weight: 700;
 }
 
 .title span {
@@ -28,11 +29,12 @@
 }
 
 .count {
-    font-size: .8rem;
+    font-size: 1.6rem; /* Double size */
+    /* Increased from .8rem */
     color: var(--text-faint);
     text-transform: uppercase;
-    letter-spacing: .1em;
-    font-weight: 700;
+    letter-spacing: .2em;
+    font-weight: 800;
 }
 
 .grid {
@@ -55,19 +57,21 @@
 
 .emptyTitle {
     font-family: var(--ff-serif);
-    font-size: 2rem;
+    font-size: 2.5rem;
+    /* Increased from 2rem */
     color: var(--secondary);
-    margin-bottom: 1rem;
-    font-weight: 500;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
 }
 
 .emptyText {
     color: var(--text-muted);
-    font-size: 1rem;
-    margin-bottom: 3rem;
-    max-width: 400px;
+    font-size: 2rem; /* Double size */
+    /* Increased from 1rem */
+    margin-bottom: 4rem;
+    max-width: 700px;
     margin-inline: auto;
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 @media (max-width: 640px) {

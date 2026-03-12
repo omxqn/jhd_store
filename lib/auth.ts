@@ -25,9 +25,16 @@ export function verifyJWT(token: string): JWTPayload | null {
     }
 }
 
-// Extract JWT payload from request cookie
+// Extract JWT payload from request (Header or Cookie)
 export function getAuthFromRequest(req: NextRequest): JWTPayload | null {
-    const token = req.cookies.get(COOKIE_NAME)?.value;
+    let token = req.cookies.get(COOKIE_NAME)?.value;
+
+    // Support Bearer token for client-side localStorage persistence
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
+
     if (!token) return null;
     return verifyJWT(token);
 }
@@ -50,11 +57,11 @@ export function clearAuthCookie(res: NextResponse): void {
 
 // Middleware: require auth (optionally require admin or super_admin role)
 export function requireAuth(
-    handler: (req: NextRequest, auth: JWTPayload) => Promise<NextResponse>,
+    handler: (req: NextRequest, auth: JWTPayload, ...args: any[]) => Promise<NextResponse>,
     requireAdmin = false,
     requireSuperAdmin = false
 ) {
-    return async (req: NextRequest) => {
+    return async (req: NextRequest, ...args: any[]) => {
         const auth = getAuthFromRequest(req);
         if (!auth) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -68,6 +75,6 @@ export function requireAuth(
             return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });
         }
 
-        return handler(req, auth);
+        return handler(req, auth, ...args);
     };
 }

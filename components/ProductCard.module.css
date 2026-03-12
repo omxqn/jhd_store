@@ -59,7 +59,7 @@
     align-items: center;
     padding: 4px 10px;
     border-radius: 4px;
-    font-size: 9px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -180,29 +180,30 @@
 }
 
 .info {
-    padding: 1.25rem;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: 12px;
     flex: 1;
 }
 
 .info {
-    padding-top: 1rem;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: .75rem;
     flex: 1;
     align-items: center;
 }
 
 .name {
     font-family: var(--ff-sans);
-    font-size: 1rem;
+    font-size: 1.875rem;
+    /* ~30px brand size */
     font-weight: 700;
     color: var(--primary);
     text-decoration: none;
-    line-height: 1.4;
+    line-height: 1.2;
     transition: color 200ms;
 }
 
@@ -219,14 +220,16 @@
 }
 
 .priceCurrent {
-    font-size: 1.125rem;
+    font-size: 2rem;
+    /* Bold prominent price */
     font-weight: 600;
     color: var(--primary);
 }
 
 .priceOld {
-    font-size: .875rem;
+    font-size: 1.75rem; /* Ultra scaled ~28px */
     color: var(--text-faint);
     text-decoration: line-through;
-    font-weight: 400;
+    font-weight: 600;
+    opacity: 0.6;
 }

@@ -12,6 +12,11 @@ export async function GET(req: NextRequest) {
         const params: unknown[] = [];
 
         if (category) { sql += " AND category = ?"; params.push(category); }
+        if (searchParams.get("featured") === "1") { sql += " AND most_selling = 1"; }
+        if (searchParams.get("limited") === "1") { sql += " AND badges LIKE '%\"limited\"%'"; }
+        if (searchParams.get("new") === "1") { sql += " AND badges LIKE '%\"new\"%'"; }
+        if (searchParams.get("discounted") === "1") { sql += " AND old_price > price AND old_price IS NOT NULL"; }
+
         if (search) {
             const cleanSearch = search.replace("#", "");
             const numericSearch = cleanSearch.replace(/^0+/, "");

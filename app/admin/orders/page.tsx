@@ -265,6 +265,24 @@ export default function AdminOrdersPage() {
                                             </button>
                                         </div>
                                     </div>
+
+                                    {editingOrder.voucher_code && (
+                                        <div className="formGroup">
+                                            <label className="formLabel">Applied Voucher</label>
+                                            <div style={{ 
+                                                padding: "0.75rem", 
+                                                background: "rgba(215, 79, 144, 0.05)", 
+                                                border: "1px dashed var(--admin-primary)", 
+                                                borderRadius: "8px",
+                                                color: "var(--admin-primary)",
+                                                fontWeight: 800,
+                                                letterSpacing: "1px",
+                                                textAlign: "center"
+                                            }}>
+                                                {editingOrder.voucher_code}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

@@ -92,10 +92,11 @@
 }
 
 .message {
-    font-size: .95rem;
+    font-size: 2rem; /* Double size */
     color: var(--secondary);
-    line-height: 1.6;
-    margin-bottom: .5rem;
+    line-height: 1.4;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
 }
 
 .unreadDot {
@@ -109,20 +110,21 @@
 }
 
 .meta {
-    font-size: .75rem;
+    font-size: 1rem; /* Increased from .75rem */
     color: var(--text-faint);
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
+    font-weight: 500;
 }
 
 .viewLink {
     color: var(--primary);
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    font-size: .7rem;
+    letter-spacing: .2em;
+    font-size: 1.6rem; /* Double size */
     transition: color 200ms ease;
 }
 

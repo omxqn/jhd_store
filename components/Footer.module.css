@@ -41,7 +41,7 @@
 
 .logoText {
     font-family: var(--ff-serif);
-    font-size: 1.25rem;
+    font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: 0.05em;
 }
@@ -52,10 +52,11 @@
 }
 
 .description {
-    font-size: 0.95rem;
-    line-height: 1.8;
+    font-size: 1.75rem; /* ~28px Bold description */
+    line-height: 1.5;
     color: var(--text-muted);
-    max-width: 350px;
+    font-weight: 500;
+    max-width: 450px;
 }
 
 .socials {
@@ -64,7 +65,7 @@
 }
 
 .socialIcon {
-    font-size: 0.8rem;
+    font-size: 1.1rem; /* Increased from 0.8rem */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -78,7 +79,7 @@
 }
 
 .colTitle {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
     color: var(--secondary);
@@ -94,7 +95,7 @@
 .linksList a {
     text-decoration: none;
     color: var(--text-muted);
-    font-size: 0.95rem;
+    font-size: 1.25rem;
     transition: all 300ms ease;
 }
 
@@ -111,8 +112,9 @@
 }
 
 .newsletterText {
-    font-size: 0.9rem;
+    font-size: 1.15rem; /* ~18px */
     color: var(--text-muted);
+    font-weight: 500;
 }
 
 .newsletterForm {
@@ -149,8 +151,9 @@
     padding-block: 2rem;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     text-align: center;
-    font-size: 0.85rem;
-    color: var(--text-faint);
+    font-size: 1.1rem; /* ~17px */
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 @media (max-width: 992px) {

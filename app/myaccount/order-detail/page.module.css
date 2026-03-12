@@ -45,13 +45,13 @@
 
 .idBadge {
     display: inline-block;
-    padding: 6px 14px;
+    padding: 8px 20px;
     background: var(--secondary);
     color: white;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1.1rem; /* Increased from 0.85rem */
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .title {
@@ -95,12 +95,12 @@
 }
 
 .sectionTitle {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 2.2rem; /* Double size */
+    font-weight: 800;
     color: var(--secondary);
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 3.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
 }
 
 /* ── Tracker ── */
@@ -148,7 +148,7 @@
 }
 
 .stepLabel {
-    font-size: 0.85rem;
+    font-size: 1.1rem; /* Increased from 0.85rem */
     font-weight: 700;
     color: var(--text-faint);
 }
@@ -230,10 +230,10 @@
 }
 
 .itemName {
-    font-weight: 700;
+    font-weight: 900;
     color: var(--secondary);
-    font-size: 1.05rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.2rem; /* Double size */
+    margin-bottom: 1rem;
 }
 
 .itemConfig {
@@ -243,7 +243,7 @@
 }
 
 .configRow {
-    font-size: 0.85rem;
+    font-size: 1.1rem; /* Increased from 0.85rem */
     color: var(--text-muted);
 }
 
@@ -268,13 +268,14 @@
 }
 
 .itemQty {
-    font-size: 0.85rem;
+    font-size: 1.1rem; /* Increased from 0.85rem */
     color: var(--text-faint);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .itemTotal {
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 1.25rem; /* Increased */
     color: var(--secondary);
 }
 
@@ -287,16 +288,16 @@
 .summaryRow {
     display: flex;
     justify-content: space-between;
-    font-size: 0.95rem;
+    font-size: 1.15rem; /* Increased from 0.95rem */
     color: var(--text-muted);
 }
 
 .totalRow {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px dashed rgba(0, 0, 0, 0.05);
-    font-weight: 800;
-    font-size: 1.25rem;
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 3px dashed rgba(0, 0, 0, 0.1);
+    font-weight: 900;
+    font-size: 3rem; /* Ultra scaled */
     color: var(--primary);
 }
 
@@ -327,18 +328,107 @@
 }
 
 @media (max-width: 600px) {
+    .page {
+        padding-top: 100px;
+        padding-bottom: 60px;
+    }
+
+    .header {
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+
+    .title {
+        font-size: clamp(1.6rem, 7vw, 2.5rem);
+    }
+
+    .section {
+        padding: clamp(1rem, 5vw, 2rem);
+        border-radius: 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .sectionTitle {
+        font-size: clamp(1.4rem, 6vw, 2rem);
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    /* Tracker fitting for narrow screens - Ultra Dense */
+    .trackerGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        padding-bottom: 0;
+        width: 100%;
+    }
+
+    .trackerStep {
+        align-items: flex-start;
+        text-align: left;
+        min-width: 0;
+    }
+
+    .connector {
+        display: none;
+    }
+
+    .iconBox {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .stepLabel {
+        font-size: clamp(0.8rem, 3.5vw, 1rem);
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* Item Card fitting - Precision Spacing */
     .itemCard {
-        grid-template-columns: 60px 1fr;
+        grid-template-columns: 70px 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        width: 100%;
     }
 
     .itemImgWrap {
-        width: 60px;
-        height: 80px;
+        width: 70px;
+        height: 90px;
+        border-radius: 8px;
+    }
+
+    .itemName {
+        font-size: clamp(1.3rem, 5vw, 1.8rem);
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .itemConfig {
+        gap: 0.15rem;
+    }
+
+    .configRow {
+        font-size: 0.95rem;
     }
 
     .itemPriceSide {
-        grid-column: 2;
-        text-align: left;
-        margin-top: 0.5rem;
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed rgba(0, 0, 0, 0.05);
+    }
+
+    .totalRow {
+        font-size: clamp(1.8rem, 8vw, 2.8rem);
+        margin-top: 2rem;
+        padding-top: 2rem;
+        line-height: 1;
+        word-break: break-word;
     }
 }

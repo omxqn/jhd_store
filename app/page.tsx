@@ -22,6 +22,11 @@ function normalizeProduct(p: any) {
     accessories: safeJson(p.accessories, [{ name: "None", price: 0 }]),
     specs: safeJson(p.specs, []), badges: safeJson(p.badges, []),
     mostSelling: !!p.most_selling, sold: p.sold || 0, rating: p.rating || 0, stock: p.stock,
+    shippingCost: parseFloat(p.shipping_cost) || 2,
+    sizes: safeJson(p.sizes, []),
+    colors: safeJson(p.colors, []),
+    options: safeJson(p.options, []),
+    isPremade: !!p.is_premade,
   };
 }
 
@@ -74,6 +79,37 @@ function ProductCarousel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function PromotionalRow({ title, badge, filter }: { title: string; badge: string; filter: string }) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/products?${filter}=1`)
+      .then(r => r.json())
+      .then(d => {
+        setProducts((d.products || []).map(normalizeProduct));
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, [filter]);
+
+  if (!loaded || products.length === 0) return null;
+
+  return (
+    <section className={styles.section}>
+      <div className="container">
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionBadge}>{badge}</span>
+          <h2 className={styles.sectionTitle}>{title}</h2>
+        </div>
+        <ProductCarousel>
+          {products.map((p) => <ProductCard key={p.id} product={p} />)}
+        </ProductCarousel>
+      </div>
+    </section>
+  );
+}
+
 function CategoryRow({ category }: { category: string }) {
   const [sort, setSort] = useState<SortKey>("selling");
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -96,7 +132,6 @@ function CategoryRow({ category }: { category: string }) {
     return (b.sold || 0) - (a.sold || 0);
   });
 
-  // Don't render until loaded, and don't render empty categories
   if (!loaded || sortedProducts.length === 0) return null;
 
   return (
@@ -128,15 +163,10 @@ function CategoryRow({ category }: { category: string }) {
 
 
 export default function HomePage() {
-  const [mostSelling, setMostSelling] = useState<any[]>([]);
   const [productCategories, setProductCategories] = useState<string[]>([]);
   const [visualCategories, setVisualCategories] = useState<{ name: string; image_url: string }[]>([]);
 
   useEffect(() => {
-    fetch("/api/products?sort=selling")
-      .then(r => r.json())
-      .then(d => setMostSelling((d.products || []).filter((p: any) => p.most_selling).map(normalizeProduct)))
-      .catch(() => { });
     fetch("/api/categories")
       .then(r => r.json())
       .then(d => {
@@ -230,18 +260,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── MOST SELLING ── */}
-      <section className={styles.section} id="most-selling">
-        <div className="container">
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionBadge}>الأحدث</span>
-            <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
-          </div>
-          <ProductCarousel>
-            {mostSelling.map((p: any) => <ProductCard key={p.id} product={p} />)}
-          </ProductCarousel>
-        </div>
-      </section>
+      {/* ── PROMOTIONAL ROWS ── */}
+      <PromotionalRow title="عرض خاص" badge="إصدار محدود" filter="limited" />
+      <PromotionalRow title="الاحدث" badge="وصلنا حديثاً" filter="new" />
+      <PromotionalRow title="الأكثر مبيعاً" badge="مختاراتنا" filter="featured" />
+      <PromotionalRow title="تخفيضات" badge="وفر الآن" filter="discounted" />
 
       {/* ── CATEGORIES ── */}
       <div className="container">

@@ -21,6 +21,10 @@ export type CartItem = {
     tailorMeasurements?: Record<string, string>;
     accessories: string[];
     image: string;
+    shippingCost: number;
+    size?: string;
+    color?: string;
+    selectedOptions?: Record<string, string>;
 };
 
 export type AuthUser = {
@@ -39,47 +43,47 @@ type StoreState = {
 
     cart: CartItem[];
     addToCart: (item: CartItem) => void;
-    updateQty: (productId: string, qty: number) => void;
-    removeFromCart: (productId: string) => void;
+    updateQty: (item: CartItem, qty: number) => void;
+    removeFromCart: (item: CartItem) => void;
     clearCart: () => void;
 
     wishlist: string[];
     toggleWishlist: (id: string) => void;
 
     authUser: AuthUser | null;
-    setAuthUser: (u: AuthUser | null) => void;
+    token: string | null;
+    setAuthUser: (u: AuthUser | null, t?: string | null) => void;
     clearAuth: () => void;
     verifyAuth: () => Promise<void>;
+    isLoading: boolean;
+    setIsLoading: (val: boolean) => void;
 };
 
 export const useStore = create<StoreState>()(
     persist(
         (set, get) => ({
+            isLoading: false,
+            setIsLoading: (val) => set({ isLoading: val }),
             country: COUNTRIES[0],
             setCountry: (c) => set({ country: c }),
 
             cart: [],
             addToCart: (item) => {
-                const existing = get().cart.find((i) =>
-                    i.productId === item.productId &&
-                    i.fabricType === item.fabricType &&
-                    i.neckline === item.neckline &&
-                    i.stitch === item.stitch
-                );
+                const existing = get().cart.find((i) => compareItems(i, item));
                 if (existing) {
                     set({ cart: get().cart.map((i) => i === existing ? { ...i, quantity: i.quantity + item.quantity } : i) });
                 } else {
                     set({ cart: [...get().cart, item] });
                 }
             },
-            updateQty: (productId, qty) =>
+            updateQty: (item, qty) =>
                 set({
                     cart: qty <= 0
-                        ? get().cart.filter((i) => i.productId !== productId)
-                        : get().cart.map((i) => i.productId === productId ? { ...i, quantity: qty } : i)
+                        ? get().cart.filter((i) => !compareItems(i, item))
+                        : get().cart.map((i) => compareItems(i, item) ? { ...i, quantity: qty } : i)
                 }),
-            removeFromCart: (productId) =>
-                set({ cart: get().cart.filter((i) => i.productId !== productId) }),
+            removeFromCart: (item) =>
+                set({ cart: get().cart.filter((i) => !compareItems(i, item)) }),
             clearCart: () => set({ cart: [] }),
 
             wishlist: [],
@@ -89,23 +93,38 @@ export const useStore = create<StoreState>()(
             },
 
             authUser: null,
-            setAuthUser: (u) => set({ authUser: u }),
-            clearAuth: () => set({ authUser: null }),
+            token: null,
+            setAuthUser: (u, t) => set({
+                authUser: u,
+                ...(t !== undefined ? { token: t } : {})
+            }),
+            clearAuth: () => set({ authUser: null, token: null }),
             verifyAuth: async () => {
+                const { token } = get();
                 try {
-                    const res = await fetch("/api/auth/me");
+                    const res = await fetch("/api/auth/me", {
+                        headers: token ? { "Authorization": `Bearer ${token}` } : {}
+                    });
                     if (res.ok) {
                         const data = await res.json();
                         set({ authUser: data.user });
                     } else {
-                        set({ authUser: null });
+                        set({ authUser: null, token: null });
                     }
                 } catch {
-                    set({ authUser: null });
+                    set({ authUser: null, token: null });
                 }
             },
         }),
-        { name: "jihad-store-state" }
+        {
+            name: "jihad-store-state",
+            partialize: (state) => ({
+                country: state.country,
+                cart: state.cart,
+                wishlist: state.wishlist,
+                token: state.token,
+            }),
+        }
     )
 );
 
@@ -113,4 +132,18 @@ export const useStore = create<StoreState>()(
 export function formatPrice(omrAmount: number, country: Country): string {
     const converted = omrAmount * country.rate;
     return `${country.symbol} ${converted.toFixed(2)}`;
+}
+
+// ── Item comparison helper ────────────────────────────
+function compareItems(a: CartItem, b: CartItem): boolean {
+    return (
+        a.productId === b.productId &&
+        a.fabricType === b.fabricType &&
+        a.neckline === b.neckline &&
+        a.stitch === b.stitch &&
+        a.size === b.size &&
+        a.color === b.color &&
+        JSON.stringify(a.accessories.sort()) === JSON.stringify(b.accessories.sort()) &&
+        JSON.stringify(a.selectedOptions) === JSON.stringify(b.selectedOptions)
+    );
 }
