@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useStore, formatPrice } from "@/lib/store";
 import { COUNTRIES } from "@/lib/data";
+import { useLanguage } from "@/context/LanguageContext";
 
 import styles from "./admin.module.css";
 
@@ -20,6 +21,7 @@ type AdvancedStats = {
 const omr = COUNTRIES[0];
 
 export default function AdminDashboard() {
+    const { lang, t, isRTL } = useLanguage();
     const [stats, setStats] = useState<Stats | null>(null);
     const [advStats, setAdvStats] = useState<AdvancedStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -39,10 +41,10 @@ export default function AdminDashboard() {
     }, []);
 
     const cards = [
-        { icon: "💰", label: "Total Revenue", value: stats ? formatPrice(stats.revenue, omr) : "—", color: "var(--admin-primary)" },
-        { icon: "📦", label: "Total Orders", value: stats?.orders ?? "—", color: "#22c55e" },
-        { icon: "👥", label: "Customers", value: stats?.users ?? "—", color: "#3b82f6" },
-        { icon: "🛍️", label: "Products", value: stats?.products ?? "—", color: "#a855f7" },
+        { icon: "💰", label: lang === 'ar' ? "إجمالي الإيرادات" : "Total Revenue", value: stats ? formatPrice(stats.revenue, omr) : "—", color: "var(--admin-primary)" },
+        { icon: "📦", label: lang === 'ar' ? "إجمالي الطلبات" : "Total Orders", value: stats?.orders ?? "—", color: "#22c55e" },
+        { icon: "👥", label: lang === 'ar' ? "العملاء" : "Customers", value: stats?.users ?? "—", color: "#3b82f6" },
+        { icon: "🛍️", label: lang === 'ar' ? "المنتجات" : "Products", value: stats?.products ?? "—", color: "#a855f7" },
     ];
 
     const statusColor: Record<string, string> = {
@@ -55,24 +57,24 @@ export default function AdminDashboard() {
 
     return (
         <div>
-            <div className={styles.pageHeader}>
+            <div className={styles.pageHeader} style={{ textAlign: isRTL ? 'right' : 'left' }}>
                 <div>
                     <h1 className={styles.pageTitle}>
-                        Dashboard <span>Overview</span>
+                        {lang === 'ar' ? "نظرة عامة على " : "Dashboard "} <span>{lang === 'ar' ? "لوحة المعلومات" : "Overview"}</span>
                     </h1>
-                    <p style={{ color: "var(--admin-text-muted)", fontSize: ".875rem" }}>
-                        {new Date().toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                    <p style={{ color: "var(--admin-text-muted)", fontSize: "1.56rem" }}>
+                        {new Date().toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                     </p>
                 </div>
             </div>
 
             {/* Stat Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem", marginBottom: "4rem" }}>
                 {cards.map(c => (
-                    <div key={c.label} className={styles.card}>
-                        <div style={{ fontSize: "1.75rem", marginBottom: ".5rem" }}>{c.icon}</div>
-                        <div style={{ fontSize: "1.5rem", fontWeight: 800, color: c.color, marginBottom: ".25rem" }}>{loading ? "…" : c.value}</div>
-                        <div style={{ fontSize: ".75rem", color: "var(--admin-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".04em" }}>{c.label}</div>
+                    <div key={c.label} className={styles.card} style={{ padding: "2.5rem", textAlign: isRTL ? 'right' : 'left' }}>
+                        <div style={{ fontSize: "3.125rem", marginBottom: "1rem" }}>{c.icon}</div>
+                        <div style={{ fontSize: "2.5rem", fontWeight: 800, color: c.color, marginBottom: ".5rem" }}>{loading ? "…" : c.value}</div>
+                        <div style={{ fontSize: "1.375rem", color: "var(--admin-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".04em" }}>{c.label}</div>
                     </div>
                 ))}
             </div>
@@ -80,8 +82,8 @@ export default function AdminDashboard() {
             {/* Advanced Analytics Grid */}
             <div className={styles.statsGrid}>
                 {/* Revenue Trend */}
-                <div className={styles.card}>
-                    <h2 className={styles.cardTitle}>30-Day Revenue Trend</h2>
+                <div className={styles.card} style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                    <h2 className={styles.cardTitle}>{lang === 'ar' ? "اتجاه الإيرادات (30 يوم)" : "30-Day Revenue Trend"}</h2>
                     <div className={styles.chartContainer}>
                         {advStats?.dailyRevenue?.map((d, i) => (
                             <div
@@ -91,24 +93,24 @@ export default function AdminDashboard() {
                                 title={`${d.date}: ${formatPrice(d.revenue, omr)}`}
                             />
                         ))}
-                        {(!advStats?.dailyRevenue?.length) && <p style={{ width: '100%', textAlign: 'center', color: 'var(--admin-text-muted)' }}>No data available for charts</p>}
+                        {(!advStats?.dailyRevenue?.length) && <p style={{ width: '100%', textAlign: 'center', color: 'var(--admin-text-muted)' }}>{lang === 'ar' ? "لا توجد بيانات متاحة للمخططات" : "No data available for charts"}</p>}
                     </div>
                 </div>
 
                 {/* Category Performance */}
-                <div className={styles.card}>
-                    <h2 className={styles.cardTitle}>Sales by Category</h2>
+                <div className={styles.card} style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                    <h2 className={styles.cardTitle}>{lang === 'ar' ? "المبيعات حسب التصنيف" : "Sales by Category"}</h2>
                     <div style={{ marginTop: '1rem' }}>
                         {advStats?.categoryStats?.map((c, i) => (
                             <div key={i} className={styles.categoryItem}>
-                                <div className={styles.categoryHeader}>
+                                <div className={styles.categoryHeader} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                                     <span>{c.category}</span>
                                     <span>{formatPrice(c.revenue, omr)}</span>
                                 </div>
                                 <div className={styles.progressWrapper}>
                                     <div
                                         className={styles.progressBar}
-                                        style={{ width: `${(c.revenue / maxCatRev) * 100}%` }}
+                                        style={{ width: `${(c.revenue / maxCatRev) * 100}%`, left: isRTL ? 'auto' : 0, right: isRTL ? 0 : 'auto' }}
                                     />
                                 </div>
                             </div>
@@ -117,13 +119,13 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Status Distribution */}
-                <div className={styles.card}>
-                    <h2 className={styles.cardTitle}>Order Status</h2>
+                <div className={styles.card} style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                    <h2 className={styles.cardTitle}>{lang === 'ar' ? "حالة الطلبات" : "Order Status"}</h2>
                     <div className={styles.statusDistribution} style={{ marginTop: '1rem' }}>
                         {advStats?.statusStats?.map((s, i) => (
-                            <div key={i} className={styles.statusRow}>
+                            <div key={i} className={styles.statusRow} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                                 <div className={styles.statusColorBox} style={{ background: statusColor[s.status] || '#ccc' }} />
-                                <div className={styles.statusLabel}>{s.status}</div>
+                                <div className={styles.statusLabel} style={{ marginLeft: isRTL ? 0 : '1rem', marginRight: isRTL ? '1rem' : 0 }}>{s.status}</div>
                                 <div className={styles.statusValue}>{s.count}</div>
                             </div>
                         ))}
@@ -131,19 +133,25 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.5rem", alignItems: "start" }}>
+            <div className={styles.statsGrid} style={{ alignItems: "start" }}>
                 {/* Recent Orders */}
                 <div className={styles.tableWrapper}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.25rem 1.25rem 0", marginBottom: "1rem" }}>
-                        <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Recent Orders</h2>
-                        <Link href="/admin/orders" style={{ fontSize: ".75rem", color: "var(--admin-primary)", fontWeight: 600 }}>View all →</Link>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2.5rem 2.5rem 0", marginBottom: "2rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                        <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>{lang === 'ar' ? "أحدث الطلبات" : "Recent Orders"}</h2>
+                        <Link href="/admin/orders" style={{ fontSize: "1.4rem", color: "var(--admin-primary)", fontWeight: 800 }}>{lang === 'ar' ? "عرض الكل ←" : "View all →"}</Link>
                     </div>
-                    {loading ? <p style={{ color: "var(--admin-text-muted)", padding: "1.25rem" }}>Loading…</p> : (
+                    {loading ? <p style={{ color: "var(--admin-text-muted)", padding: "1.25rem", textAlign: "center" }}>{t('common.loading')}</p> : (
                         <table className={styles.table}>
                             <thead>
-                                <tr>
-                                    {["Order", "Customer", "Total", "Status", "Date"].map(h => (
-                                        <th key={h}>{h}</th>
+                                <tr style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                                    {[
+                                        lang === 'ar' ? "الطلب" : "Order",
+                                        lang === 'ar' ? "العميل" : "Customer",
+                                        lang === 'ar' ? "الإجمالي" : "Total",
+                                        lang === 'ar' ? "الحالة" : "Status",
+                                        lang === 'ar' ? "التاريخ" : "Date"
+                                    ].map(h => (
+                                        <th key={h} style={{ textAlign: isRTL ? 'right' : 'left' }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -156,9 +164,9 @@ export default function AdminDashboard() {
                                         <td>{o.name}</td>
                                         <td style={{ fontWeight: 600 }}>{formatPrice(o.total, omr)}</td>
                                         <td>
-                                            <span style={{ background: `${statusColor[o.status] || '#ccc'}22`, color: statusColor[o.status] || '#666', padding: "3px 8px", borderRadius: "9999px", fontSize: ".7rem", fontWeight: 700 }}>{o.status}</span>
+                                            <span style={{ background: `${statusColor[o.status] || '#ccc'}22`, color: statusColor[o.status] || '#666', padding: "6px 16px", borderRadius: "9999px", fontSize: "1.1rem", fontWeight: 700 }}>{o.status}</span>
                                         </td>
-                                        <td style={{ color: "var(--admin-text-muted)" }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                                        <td style={{ color: "var(--admin-text-muted)", textAlign: isRTL ? 'right' : 'left' }}>{new Date(o.created_at).toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-GB")}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -167,19 +175,19 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Top Products */}
-                <div className={styles.card} style={{ padding: "1.25rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-                        <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Top Products</h2>
-                        <Link href="/admin/products" style={{ fontSize: ".75rem", color: "var(--admin-primary)", fontWeight: 600 }}>All →</Link>
+                <div className={styles.card} style={{ padding: "2.5rem", textAlign: isRTL ? 'right' : 'left' }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.5rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                        <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>{lang === 'ar' ? "المنتجات الأكثر مبيعاً" : "Top Products"}</h2>
+                        <Link href="/admin/products" style={{ fontSize: "1.4rem", color: "var(--admin-primary)", fontWeight: 800 }}>{lang === 'ar' ? "الكل ←" : "All →"}</Link>
                     </div>
-                    {loading ? <p style={{ color: "var(--admin-text-muted)" }}>Loading…</p> : stats?.topProducts?.map((p: any, i) => (
-                        <div key={p.id} style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".75rem 0", borderBottom: i < (stats.topProducts.length - 1) ? "1px solid var(--admin-border)" : "none" }}>
-                            <div style={{ width: 28, height: 28, background: "rgba(215, 79, 144, 0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".75rem", fontWeight: 800, color: "var(--admin-primary)", flexShrink: 0 }}>
+                    {loading ? <p style={{ color: "var(--admin-text-muted)", textAlign: "center" }}>{t('common.loading')}</p> : stats?.topProducts?.map((p: any, i) => (
+                        <div key={p.id} style={{ display: "flex", alignItems: "center", gap: "1.5rem", padding: "1.5rem 0", borderBottom: i < (stats.topProducts.length - 1) ? "1px solid var(--admin-border)" : "none", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                            <div style={{ width: 48, height: 48, background: "rgba(215, 79, 144, 0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", fontWeight: 800, color: "var(--admin-primary)", flexShrink: 0 }}>
                                 {i + 1}
                             </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: ".85rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--admin-text)" }}>{p.name}</div>
-                                <div style={{ fontSize: ".75rem", color: "var(--admin-text-muted)" }}>{p.sold} sold · {formatPrice(p.price, omr)}</div>
+                            <div style={{ flex: 1, minWidth: 0, textAlign: isRTL ? 'right' : 'left' }}>
+                                <div style={{ fontSize: "1.5rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--admin-text)" }}>{p.name}</div>
+                                <div style={{ fontSize: "1.3rem", color: "var(--admin-text-muted)" }}>{p.sold} {lang === 'ar' ? "تم بيعها" : "sold"} · {formatPrice(p.price, omr)}</div>
                             </div>
                         </div>
                     ))}

@@ -12,10 +12,72 @@
     background: var(--admin-bg);
     color: var(--admin-text);
     font-family: var(--ff-sans);
+    font-size: 1.2rem;
+    overflow-x: hidden;
+}
+
+.mobileHeader {
+    display: none; /* Desktop hidden */
+    height: 70px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--admin-border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    align-items: center;
+    padding: 0 1.5rem;
+    gap: 1.5rem;
+}
+
+.hamburger {
+    background: none;
+    border: none;
+    font-size: 2.25rem;
+    color: var(--admin-primary);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.5rem;
+}
+
+.mobileLogo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.logoIconSmall {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--admin-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.logoTextSmall {
+    font-family: var(--ff-serif);
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.miniLink {
+    font-weight: 700;
+    color: var(--admin-primary);
+    text-decoration: none;
+    font-size: 1.2rem;
 }
 
 .sidebar {
-    width: 250px;
+    width: 400px;
     flex-shrink: 0;
     background: var(--admin-surface);
     border-right: 1px solid var(--admin-border);
@@ -24,7 +86,14 @@
     position: sticky;
     top: 0;
     height: 100vh;
-    overflow-y: auto;
+    overflow: hidden;
+    transition: opacity 0.2s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global(body.hide-admin-nav) .sidebar,
+:global(body.hide-admin-nav) .mobileHeader {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .logoArea {
@@ -33,9 +102,9 @@
 }
 
 .logoIcon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
     background: var(--admin-primary);
     display: flex;
     align-items: center;
@@ -43,30 +112,33 @@
     font-family: var(--ff-serif);
     font-weight: 700;
     color: #ffffff;
-    font-size: 1.2rem;
+    font-size: 2rem;
 }
 
 .logoText {
     font-family: var(--ff-serif);
     color: var(--admin-text);
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 2.25rem;
 }
 
 .nav {
     flex: 1;
     padding: 1rem .75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .navLink {
     display: flex;
     align-items: center;
-    gap: .75rem;
-    padding: .875rem 1rem;
-    border-radius: .75rem;
-    margin-bottom: .25rem;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    margin-bottom: .5rem;
     font-weight: 500;
-    font-size: .9rem;
+    font-size: 1.5rem;
     text-decoration: none;
     color: var(--admin-text-muted);
     border-left: 3px solid transparent;
@@ -85,6 +157,11 @@
     color: var(--admin-primary);
     border-left: 3px solid var(--admin-primary);
     font-weight: 600;
+}
+
+:global([dir="rtl"]) .navLinkActive {
+    border-left: none;
+    border-right: 3px solid var(--admin-primary);
 }
 
 .sidebarFooter {
@@ -110,7 +187,7 @@
 
 .pageTitle {
     font-family: var(--ff-serif);
-    font-size: 2rem;
+    font-size: 3.5rem;
     font-weight: 600;
     color: var(--admin-text);
 }
@@ -130,7 +207,7 @@
 }
 
 .cardTitle {
-    font-size: 1.1rem;
+    font-size: 1.75rem;
     font-weight: 600;
     color: var(--admin-text);
     margin-bottom: 1.25rem;
@@ -160,23 +237,27 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    font-size: .9rem;
+    font-size: 1.4rem;
 }
 
 .table th {
     background: rgba(0, 0, 0, 0.02);
-    padding: 1rem 1.25rem;
+    padding: 1.5rem 2rem;
     text-align: left;
     color: var(--admin-text-muted);
     font-weight: 600;
-    font-size: .8rem;
+    font-size: 1.2rem;
     text-transform: uppercase;
     letter-spacing: .05em;
     border-bottom: 1px solid var(--admin-border);
 }
 
+:global([dir="rtl"]) .table th {
+    text-align: right;
+}
+
 .table td {
-    padding: 1rem 1.25rem;
+    padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--admin-border);
     color: var(--admin-text);
 }
@@ -201,8 +282,8 @@
 .adminInput {
     background: var(--admin-bg);
     border: 1px solid var(--admin-border);
-    border-radius: 8px;
-    padding: .75rem 1rem;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
     outline: none;
     transition: all 200ms ease;
     width: 100%;
@@ -218,10 +299,10 @@
     background: var(--admin-primary);
     color: #fff;
     border: none;
-    padding: .75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
+    padding: 1.25rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.4rem;
     transition: all 200ms ease;
 }
 
@@ -276,8 +357,9 @@
 .categoryHeader {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
 }
 
 .progressWrapper {
@@ -313,13 +395,14 @@
 
 .statusLabel {
     flex: 1;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     color: var(--admin-text-muted);
+    font-weight: 600;
 }
 
 .statusValue {
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 800;
+    font-size: 1.1rem;
 }
 
 /* Modal & Editor Styles */
@@ -382,13 +465,140 @@
 }
 
 .formSectionTitle {
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 800;
     color: var(--admin-primary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+}
+
+.formSectionTitle::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 1.4rem;
+    background: var(--admin-primary);
+    border-radius: 3px;
+}
+
+:global([dir="rtl"]) .formSectionTitle::before {
+    margin-left: 0.75rem;
+    margin-right: 0;
+}
+
+:global([dir="ltr"]) .formSectionTitle::before {
+    margin-right: 0.75rem;
+    margin-left: 0;
+}
+
+/* ── Mobile & Tablet Refinements ── */
+@media (max-width: 1024px) {
+    .adminLayout {
+        flex-direction: column;
+        padding-top: 70px; /* Space for mobileHeader */
+    }
+
+    .mobileHeader {
+        display: flex;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -320px;
+        top: 0;
+        bottom: 0;
+        z-index: 1001;
+        width: 320px;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 20px 0 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebarRTL {
+        left: auto;
+        right: -320px;
+        box-shadow: -20px 0 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebarOpen {
+        transform: translateX(320px);
+    }
+
+    .sidebarOpen.sidebarRTL {
+        transform: translateX(-320px);
+    }
+
+    .sidebarOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .mainContent {
+        padding: 1.5rem;
+        width: 100%;
+    }
+
+    .pageTitle {
+        font-size: 2.5rem;
+    }
+
+    .tableWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-inline: -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .table {
+        min-width: 800px; /* Force scroll */
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .modalOverlay {
+        padding: 0;
+    }
+
+    .modalContent {
+        max-width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .adminBtn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .navLink {
+        font-size: 1.1rem;
+        padding: 1rem 1.5rem;
+        gap: 1rem;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

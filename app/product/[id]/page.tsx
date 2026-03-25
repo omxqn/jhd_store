@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useStore, formatPrice, CartItem } from "@/lib/store";
 import toast from "react-hot-toast";
 import styles from "./page.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 /** Normalize a DB row → the shape the page expects */
 function normalizeProduct(p: any) {
@@ -39,6 +40,7 @@ function normalizeProduct(p: any) {
         colors: safeJson(p.colors, []),
         options: safeJson(p.options, []),
         isPremade: !!p.is_premade,
+        weight: parseFloat(p.weight) || 0.5,
     };
 }
 
@@ -46,6 +48,7 @@ export default function ProductPage() {
     const params = useParams();
     const router = useRouter();
     const { country, addToCart, toggleWishlist, wishlist } = useStore();
+    const { lang, t, isRTL } = useLanguage();
 
     const [product, setProduct] = useState<ReturnType<typeof normalizeProduct> | null>(null);
     const [loading, setLoading] = useState(true);
@@ -110,11 +113,11 @@ export default function ProductPage() {
         });
     };
 
-    if (loading) return <div style={{ padding: "4rem", textAlign: "center", color: "var(--secondary)" }}>Loading product…</div>;
+    if (loading) return <div style={{ padding: "4rem", textAlign: "center", color: "var(--secondary)" }}>{t('common.loading')}</div>;
     if (!product) return (
         <div style={{ padding: "4rem", textAlign: "center" }}>
-            <h2 style={{ color: "#e6a91f" }}>Product not found</h2>
-            <button className="btn btnPrimary" onClick={() => router.push("/")}>Back to Shop</button>
+            <h2 style={{ color: "#e6a91f" }}>{lang === 'ar' ? "المنتج غير موجود" : "Product not found"}</h2>
+            <button className="btn btnPrimary" onClick={() => router.push("/")}>{t('common.back')}</button>
         </div>
     );
 
@@ -126,19 +129,44 @@ export default function ProductPage() {
 
     const handleAddToCart = () => {
         if (product.sizes.length > 0 && !selectedSize) {
-            toast.error("Please select a size 📏");
+            toast.error(t('product.select_size'));
             return;
         }
         if (product.colors.length > 0 && !selectedColor) {
-            toast.error("Please select a color 🎨");
+            toast.error(lang === 'ar' ? "الرجاء اختيار اللون" : "Please select a color");
             return;
         }
 
         // Validate generic options
         for (const opt of product.options) {
             if (!selectedOptions[opt.title]) {
-                toast.error(`Please select: ${opt.title}`);
+                toast.error(`${lang === 'ar' ? 'الرجاء اختيار' : 'Please select'}: ${opt.title}`);
                 return;
+            }
+        }
+
+        if (!product.isPremade) {
+            if (!fabricLength || parseFloat(fabricLength) <= 0) {
+                toast.error("Please enter a valid Fabric Length 🧵");
+                return;
+            }
+            if (!neckSize || parseFloat(neckSize) <= 0) {
+                toast.error("Please enter a valid Neck Size 👔");
+                return;
+            }
+            if (product.necklineShapes.length > 0 && !selectedNeckline) {
+                toast.error("Please select a Neckline Shape ✨");
+                return;
+            }
+            
+            if (stitch === "yes") {
+                const requiredTailoring = ["Chest", "Waist", "Hips", "Shoulder Width", "Sleeve Length", "Total Length"];
+                for (const field of requiredTailoring) {
+                    if (!tailorMeasurements[field] || parseFloat(tailorMeasurements[field]) <= 0) {
+                        toast.error(`Please enter ${field} for Bespoke tailoring ✂️`);
+                        return;
+                    }
+                }
             }
         }
 
@@ -158,18 +186,19 @@ export default function ProductPage() {
             accessories: selectedAccessories,
             image: product.images[0] ?? "",
             shippingCost: product.shippingCost,
+            weight: product.weight,
             size: selectedSize || undefined,
             color: selectedColor || undefined,
             selectedOptions: selectedOptions,
         };
         addToCart(item);
-        toast.success(`${product.name} added to cart! 🛒`);
+        toast.success(t('product.added_to_cart'));
     };
 
     const availMap: Record<string, { label: string; cls: string }> = {
-        "available": { label: "Available", cls: styles.availAvail },
-        "out-of-stock": { label: "Out of Stock", cls: styles.availOos },
-        "coming-soon": { label: "Coming Soon", cls: styles.availSoon },
+        "available": { label: t('product.available'), cls: styles.availAvail },
+        "out-of-stock": { label: t('product.out_of_stock'), cls: styles.availOos },
+        "coming-soon": { label: t('product.coming_soon'), cls: styles.availSoon },
     };
     const avail = availMap[product.availability] ?? availMap["available"];
 
@@ -177,7 +206,7 @@ export default function ProductPage() {
         <div className={styles.page}>
             <div className={`container ${styles.productContainer}`}>
                 <div className={styles.breadcrumb}>
-                    <Link href="/">Home</Link> / <Link href={`/category/${product.category.toLowerCase()}`}>{product.category}</Link> / <span>{product.name}</span>
+                    <Link href="/">{t('nav.home')}</Link> / <Link href={`/category/${product.category.toLowerCase()}`}>{product.category}</Link> / <span>{product.name}</span>
                 </div>
 
                 <div className={styles.layout}>
@@ -190,14 +219,16 @@ export default function ProductPage() {
                     </div>
 
                     <div className={styles.infoCol}>
-                        <div>
-                            <div className={styles.prodNum}>#{product.id}</div>
-                            <h1 className={styles.prodName}>{product.name}</h1>
-                        </div>
+                        <div className={styles.headerRow}>
+                            <div>
+                                <div className={styles.prodNum}>#{product.id}</div>
+                                <h1 className={styles.prodName}>{product.name}</h1>
+                            </div>
 
-                        <div className={styles.priceRow}>
-                            <span className={styles.priceCurrent}>{formatPrice(product.price, country)}</span>
-                            {product.oldPrice && <span className={styles.priceOld}>{formatPrice(product.oldPrice, country)}</span>}
+                            <div className={styles.priceRow}>
+                                <span className={styles.priceCurrent}>{formatPrice(product.price, country)}</span>
+                                {product.oldPrice && <span className={styles.priceOld}>{formatPrice(product.oldPrice, country)}</span>}
+                            </div>
                         </div>
 
                         <div className={styles.availRow}>
@@ -212,7 +243,7 @@ export default function ProductPage() {
                         {/* PRE-MADE OPTIONS: Sizes & Colors */}
                         {product.sizes.length > 0 && (
                             <div style={{ marginBottom: "1.5rem" }}>
-                                <label className={styles.optLabel}>Select Size: <span className={styles.optValue}>{selectedSize}</span></label>
+                                <label className={styles.optLabel}>{t('product.size')}: <span className={styles.optValue}>{selectedSize}</span></label>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
                                     {product.sizes.map((s: string) => (
                                         <button key={s} 
@@ -222,7 +253,7 @@ export default function ProductPage() {
                                                 borderColor: selectedSize === s ? "var(--primary)" : "var(--border)",
                                                 background: selectedSize === s ? "var(--primary)" : "transparent",
                                                 color: selectedSize === s ? "#fff" : "var(--secondary)",
-                                                cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 200ms"
+                                                cursor: "pointer", fontWeight: 600, fontSize: "1.1rem", transition: "all 200ms"
                                             }}>
                                             {s}
                                         </button>
@@ -233,7 +264,7 @@ export default function ProductPage() {
 
                         {product.colors.length > 0 && (
                             <div style={{ marginBottom: "1.5rem" }}>
-                                <label className={styles.optLabel}>Select Color: <span className={styles.optValue}>{selectedColor}</span></label>
+                                <label className={styles.optLabel}>{t('product.color')}: <span className={styles.optValue}>{selectedColor}</span></label>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
                                     {product.colors.map((c: string) => (
                                         <button key={c} 
@@ -243,7 +274,7 @@ export default function ProductPage() {
                                                 borderColor: selectedColor === c ? "var(--primary)" : "var(--border)",
                                                 background: selectedColor === c ? "var(--primary)" : "transparent",
                                                 color: selectedColor === c ? "#fff" : "var(--secondary)",
-                                                cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 200ms"
+                                                cursor: "pointer", fontWeight: 600, fontSize: "1.1rem", transition: "all 200ms"
                                             }}>
                                             {c}
                                         </button>
@@ -280,7 +311,7 @@ export default function ProductPage() {
                                 {/* Fabric Type */}
                                 {product.fabricTypes.length > 0 && (
                                     <div>
-                                        <label className={styles.optLabel}>Fabric Selection: <span className={styles.optValue}>{fabricType}</span></label>
+                                        <label className={styles.optLabel}>{t('product.fabric')}: <span className={styles.optValue}>{fabricType}</span></label>
                                         <select className="formSelect" style={{ color: "black" }} value={fabricType} onChange={e => setFabricType(e.target.value)}>
                                             {product.fabricTypes.map((f: string) => <option key={f}>{f}</option>)}
                                         </select>
@@ -290,21 +321,38 @@ export default function ProductPage() {
                                 {/* Measurements */}
                                 <div className={styles.twoCol}>
                                     <div>
-                                        <label className={styles.optLabel}>Fabric Length (cm)</label>
+                                        <label className={styles.optLabel}>{t('product.fabric_length')} <span style={{ color: "var(--danger)" }}>*</span></label>
                                         <input className="formInput" style={{ color: "black" }} type="number" placeholder="150" value={fabricLength} onChange={e => setFabricLength(e.target.value)} />
                                     </div>
                                     <div>
-                                        <label className={styles.optLabel}>Neck Size (cm)</label>
+                                        <label className={styles.optLabel}>{t('product.neck_size')} <span style={{ color: "var(--danger)" }}>*</span></label>
                                         <input className="formInput" style={{ color: "black" }} type="number" placeholder="40" value={neckSize} onChange={e => setNeckSize(e.target.value)} />
                                     </div>
                                 </div>
 
                                 {/* Neckline Shapes */}
                                 {product.necklineShapes.length > 0 && (
-                                    <div>
-                                        <button className={styles.optLabelBtn} onClick={() => setNecklineOpen(o => !o)}>
-                                            Neckline Shape: <span className={styles.optValue}>{selectedNeckline}</span> {necklineOpen ? "▴" : "▾"}
-                                        </button>
+                                    <div style={{ marginBottom: "1rem" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                                            {product.necklineShapes.find((ns: any) => ns.name === selectedNeckline)?.image && (
+                                                <img 
+                                                    src={product.necklineShapes.find((ns: any) => ns.name === selectedNeckline).image} 
+                                                    alt={selectedNeckline}
+                                                    style={{ 
+                                                        width: "64px", 
+                                                        height: "64px", 
+                                                        borderRadius: "12px", 
+                                                        border: "1px solid var(--border)", 
+                                                        background: "#fff", 
+                                                        objectFit: "contain",
+                                                        padding: "4px"
+                                                    }} 
+                                                />
+                                            )}
+                                            <button className={styles.optLabelBtn} style={{ marginBottom: 0 }} onClick={() => setNecklineOpen(o => !o)}>
+                                                {t('product.neckline')} <span style={{ color: "var(--danger)" }}>*</span>: <span className={styles.optValue}>{selectedNeckline || "Select..."}</span> {necklineOpen ? "▴" : "▾"}
+                                            </button>
+                                        </div>
                                         {necklineOpen && (
                                             <div className={styles.necklineGrid}>
                                                 {product.necklineShapes.map((ns: any) => (
@@ -322,12 +370,12 @@ export default function ProductPage() {
 
                                 {/* Stitch */}
                                 <div>
-                                    <label className={styles.optLabel}>Tailoring / Stitching</label>
+                                    <label className={styles.optLabel}>{t('product.tailoring')}</label>
                                     <div className={styles.stitchRow}>
                                         {(["yes", "no"] as const).map(v => (
                                             <label key={v} className={`${styles.stitchLabel} ${stitch === v ? styles.stitchSelected : ""}`}>
                                                 <input type="radio" name="stitch" value={v} checked={stitch === v} onChange={() => setStitch(v)} style={{ display: "none" }} />
-                                                {v === "yes" ? `✂️ Bespoke (+${formatPrice(product.stitchPrice, country)})` : "No Stitching"}
+                                                {v === "yes" ? `✂️ ${t('product.bespoke')} (+${formatPrice(product.stitchPrice, country)})` : t('product.no_stitching')}
                                             </label>
                                         ))}
                                     </div>
@@ -336,7 +384,7 @@ export default function ProductPage() {
                                             <div className={styles.stitchNote}>Tailoring service requested. Please provide measurements in <strong>cm</strong>.</div>
                                             {["Chest", "Waist", "Hips", "Shoulder Width", "Sleeve Length", "Total Length"].map(m => (
                                                 <div key={m}>
-                                                    <label className={styles.optLabel}>{m}</label>
+                                                    <label className={styles.optLabel}>{m} (cm) <span style={{ color: "var(--danger)" }}>*</span></label>
                                                     <input className="formInput" type="number" placeholder="0.0"
                                                         value={tailorMeasurements[m] ?? ""}
                                                         onChange={e => setTailorMeasurements(p => ({ ...p, [m]: e.target.value }))} />
@@ -351,7 +399,7 @@ export default function ProductPage() {
                         {/* Accessories */}
                         {product.accessories.length > 0 && (
                             <div style={{ marginTop: "1.5rem" }}>
-                                <label className={styles.optLabel}>Signature Accessories</label>
+                                <label className={styles.optLabel}>{t('product.accessories')}</label>
                                 <div className={styles.accessoriesRow}>
                                     {product.accessories.map((acc: any) => {
                                         const isSelected = selectedAccessories.includes(acc.name);
@@ -372,7 +420,7 @@ export default function ProductPage() {
                         {/* Qty + Total */}
                         <div className={styles.qtyTotalRow}>
                             <div>
-                                <label className={styles.optLabel}>Quantity</label>
+                                <label className={styles.optLabel}>{t('product.qty')}</label>
                                 <div className={styles.qtyStepper}>
                                     <button className={styles.qtyBtn} onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
                                     <span className={styles.qtyNum}>{qty}</span>
@@ -380,13 +428,13 @@ export default function ProductPage() {
                                 </div>
                             </div>
                             <div className={styles.totalBox}>
-                                <div className={styles.totalLabel}>Subtotal</div>
+                                <div className={styles.totalLabel}>{t('cart.subtotal')}</div>
                                 <div className={styles.totalAmount}>{formatPrice(totalPrice, country)}</div>
                                 {(stitchPrice > 0 || accessoriesPrice > 0) && (
                                     <div className={styles.totalBreakdown}>
-                                        {formatPrice(product.price, country)} (Base)
-                                        {stitchPrice > 0 && ` + ${formatPrice(stitchPrice, country)} (Stitch)`}
-                                        {accessoriesPrice > 0 && ` + ${formatPrice(accessoriesPrice, country)} (Acc)`}
+                                        {formatPrice(product.price, country)} ({t('product.base_price')})
+                                        {stitchPrice > 0 && ` + ${formatPrice(stitchPrice, country)} (${t('product.stitch_charge')})`}
+                                        {accessoriesPrice > 0 && ` + ${formatPrice(accessoriesPrice, country)} (${t('product.acc_charge')})`}
                                         {qty > 1 && ` × ${qty}`}
                                     </div>
                                 )}
@@ -397,13 +445,13 @@ export default function ProductPage() {
                         {/* Actions */}
                         <div className={styles.ctaRow}>
                             <button className="btn btnPrimary btnLg"
-                                style={{ flex: 1, justifyContent: "center" }}
+                                style={{ flex: 1, justifyContent: "center", fontSize: "1.5rem", padding: "1rem" }}
                                 onClick={handleAddToCart}
                                 disabled={product.availability === "out-of-stock"}>
-                                💼 Add to Shopping Bag
+                                💼 {t('product.add_to_bag')}
                             </button>
                             <button className="btn btnOutline"
-                                style={{ color: isWishlisted ? "var(--danger)" : "var(--secondary)", borderColor: isWishlisted ? "var(--danger)" : "var(--border)" }}
+                                style={{ color: isWishlisted ? "var(--danger)" : "var(--secondary)", borderColor: isWishlisted ? "var(--danger)" : "var(--border)", fontSize: "1.75rem", padding: "1rem 1.5rem" }}
                                 onClick={() => { toggleWishlist(product.id); toast(isWishlisted ? "Removed from wishlist" : "Added to wishlist ♥"); }}>
                                 {isWishlisted ? "♥" : "♡"}
                             </button>
@@ -414,9 +462,9 @@ export default function ProductPage() {
                 {/* Description Tabs */}
                 <div className={styles.descSection}>
                     <div className={styles.tabs}>
-                        {(["desc", "details", "specs"] as const).map(t => (
-                            <button key={t} className={`${styles.tab} ${activeTab === t ? styles.tabActive : ""}`} onClick={() => setActiveTab(t)}>
-                                {t === "desc" ? "Story" : t === "details" ? "Craftsmanship" : "Specifications"}
+                        {(["desc", "details", "specs"] as const).map(tKey => (
+                            <button key={tKey} className={`${styles.tab} ${activeTab === tKey ? styles.tabActive : ""}`} onClick={() => setActiveTab(tKey)}>
+                                {tKey === "desc" ? t('product.story') : tKey === "details" ? t('product.craftsmanship') : t('product.specs')}
                             </button>
                         ))}
                     </div>

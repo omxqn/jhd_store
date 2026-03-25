@@ -28,19 +28,19 @@ async function createProduct(req: NextRequest, _auth: JWTPayload) {
     const data = await req.json();
     const { id, name, category, price, old_price, images, badges, availability, description, details,
         fabric_types, neckline_shapes, stitch_price, accessories, shipping_note, most_selling, specs, stock, shipping_cost,
-        sizes, colors, is_premade, options } = data;
+        sizes, colors, is_premade, options, weight } = data;
 
     await query(
         `INSERT INTO products (id, name, category, price, old_price, images, badges, availability, description, details,
          fabric_types, neckline_shapes, stitch_price, accessories, shipping_note, most_selling, specs, stock, shipping_cost,
-         sizes, colors, is_premade, options)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         sizes, colors, is_premade, options, weight)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [id, name, category, price, old_price || null,
             JSON.stringify(images), JSON.stringify(badges), availability, description, details,
             JSON.stringify(fabric_types), JSON.stringify(neckline_shapes), stitch_price,
             JSON.stringify(accessories), shipping_note, most_selling ? 1 : 0, JSON.stringify(specs),
             stock ?? 100, shipping_cost ?? 2.000,
-            JSON.stringify(sizes || []), JSON.stringify(colors || []), is_premade ? 1 : 0, JSON.stringify(options || [])]
+            JSON.stringify(sizes || []), JSON.stringify(colors || []), is_premade ? 1 : 0, JSON.stringify(options || []), weight ?? 0.5]
     );
     return NextResponse.json({ success: true, id }, { status: 201 });
 }

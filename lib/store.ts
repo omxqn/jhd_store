@@ -22,6 +22,7 @@ export type CartItem = {
     accessories: string[];
     image: string;
     shippingCost: number;
+    weight?: number;
     size?: string;
     color?: string;
     selectedOptions?: Record<string, string>;

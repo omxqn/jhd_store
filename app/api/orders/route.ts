@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, queryOne } from "@/lib/db";
+import pool from "@/lib/db";
 import { getAuthFromRequest } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-    // Get a raw connection for transaction support
-    const { createPool } = await import("mysql2/promise");
-    const pool = createPool({
-        host: process.env.DB_HOST || "localhost",
-        user: process.env.DB_USER || "root",
-        password: process.env.DB_PASSWORD || "",
-        database: process.env.DB_NAME || "jihad_store",
-    });
+    // Use the shared SSL-enabled pool from lib/db
     const conn = await pool.getConnection();
 
     try {
@@ -124,8 +118,6 @@ export async function POST(req: NextRequest) {
         conn.release();
         console.error("[orders POST]", err);
         return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
-    } finally {
-        pool.end();
     }
 }
 

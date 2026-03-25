@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import styles from "../../admin.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 const BADGE_OPTIONS: [string, string][] = [
     ["sale", "On Sale"],
@@ -18,6 +19,7 @@ interface SpecRow { label: string; value: string; }
 
 export default function NewProductPage() {
     const router = useRouter();
+    const { lang } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
     const [categories, setCategories] = useState<string[]>(["Thobes", "Abayas", "Bishts", "Kids", "Accessories"]);
@@ -30,6 +32,7 @@ export default function NewProductPage() {
         description: "", details: "", most_selling: false, stock: "100",
         shipping_cost: "2",
         is_premade: false,
+        weight: "0.5",
     });
 
     const [images, setImages] = useState<string[]>([]);
@@ -117,6 +120,7 @@ export default function NewProductPage() {
                 old_price: form.old_price ? parseFloat(form.old_price) : null,
                 stitch_price: parseFloat(form.stitch_price || "0"),
                 shipping_cost: parseFloat(form.shipping_cost || "2"),
+                weight: parseFloat(form.weight || "0.5"),
                 stock: parseInt(form.stock || "100"),
                 images,
                 badges,
@@ -147,17 +151,17 @@ export default function NewProductPage() {
 
     const inputStyle = {
         background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: "8px", padding: "0.6rem 0.85rem", color: "var(--admin-text)",
-        fontSize: "0.875rem", width: "100%", outline: "none",
+        borderRadius: "8px", padding: "0.8rem 1rem", color: "var(--admin-text)",
+        fontSize: "1.1rem", width: "100%", outline: "none",
     } as const;
 
     const sectionStyle = {
         background: "var(--admin-surface)", border: "1px solid var(--admin-border)",
-        borderRadius: "12px", padding: "1.5rem", marginBottom: "1.5rem",
+        borderRadius: "12px", padding: "1.75rem", marginBottom: "1.5rem",
     } as const;
 
     const sectionTitle = {
-        fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase" as const,
+        fontSize: "1.2rem", fontWeight: 700, textTransform: "uppercase" as const,
         letterSpacing: "0.06em", color: "var(--admin-primary)", marginBottom: "1.25rem",
         display: "flex", alignItems: "center", gap: "0.5rem",
     };
@@ -165,43 +169,43 @@ export default function NewProductPage() {
     return (
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
-                <button onClick={() => router.back()} style={{ background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontSize: "0.875rem" }}>← Back</button>
-                <div>
-                    <h1 className={styles.pageTitle}>Add <span>New Product</span></h1>
-                    <p style={{ color: "var(--admin-text-muted)", fontSize: ".875rem" }}>Fill in the details below to list a new item</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem", flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                <button onClick={() => router.back()} style={{ background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontSize: "1rem" }}>{lang === 'ar' ? "← رجوع" : "← Back"}</button>
+                <div style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                    <h1 className={styles.pageTitle}>{lang === 'ar' ? "إضافة" : "Add"} <span>{lang === 'ar' ? "منتج جديد" : "New Product"}</span></h1>
+                    <p style={{ color: "var(--admin-text-muted)", fontSize: "1.1rem" }}>{lang === 'ar' ? "قم بملء التفاصيل أدناه لإدراج عنصر جديد" : "Fill in the details below to list a new item"}</p>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit}>
                 {/* Section 1: Identity */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>🏷️ Product Identity</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+                    <div style={sectionTitle}>🏷️ {lang === 'ar' ? "هوية المنتج" : "Product Identity"}</div>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Product ID (auto-generated)</label>
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "معرف المنتج (تلقائي)" : "Product ID (auto-generated)"}</label>
                             <input style={{ ...inputStyle, opacity: 0.6, cursor: "not-allowed" }} value={form.id} readOnly placeholder="auto" />
                         </div>
                         <div style={{ gridColumn: "span 2" }}>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Product Name *</label>
-                            <input style={inputStyle} value={form.name} onChange={f("name")} placeholder="e.g. Royal Embroidered Thobe" />
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "اسم المنتج *" : "Product Name *"}</label>
+                            <input style={inputStyle} value={form.name} onChange={f("name")} placeholder={lang === 'ar' ? "مثال: ثوب عماني مطرز" : "e.g. Royal Embroidered Thobe"} />
                         </div>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Category *</label>
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "الفئة *" : "Category *"}</label>
                             <select style={{ ...inputStyle, cursor: "pointer" }} value={form.category} onChange={f("category")}>
                                 {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Availability</label>
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "حالة التوفر" : "Availability"}</label>
                             <select style={{ ...inputStyle, cursor: "pointer" }} value={form.availability} onChange={f("availability")}>
-                                <option value="available">Available</option>
-                                <option value="out-of-stock">Out of Stock</option>
-                                <option value="coming-soon">Coming Soon</option>
+                                <option value="available">{lang === 'ar' ? 'متوفر' : 'Available'}</option>
+                                <option value="out-of-stock">{lang === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}</option>
+                                <option value="coming-soon">{lang === 'ar' ? 'قريباً' : 'Coming Soon'}</option>
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Stock Units</label>
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "المخزون" : "Stock Units"}</label>
                             <input style={inputStyle} type="number" min="0" value={form.stock} onChange={f("stock")} />
                         </div>
                     </div>
@@ -209,16 +213,17 @@ export default function NewProductPage() {
 
                 {/* Section 2: Pricing */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>💰 Pricing</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
+                    <div style={sectionTitle}>💰 {lang === 'ar' ? "التسعير والخدمات اللوجستية" : "Pricing & Logistics"}</div>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                         {[
-                            ["Price (OMR) *", "price", "0.000"],
-                            ["Old Price (OMR)", "old_price", "Leave blank if no sale"],
-                            ["Stitch Price (OMR)", "stitch_price", "0.000"],
-                            ["Shipping Cost (OMR) *", "shipping_cost", "2.000"]
+                            [lang === 'ar' ? "السعر (عماني) *" : "Price (OMR) *", "price", "0.000"],
+                            [lang === 'ar' ? "السعر القديم (عماني)" : "Old Price (OMR)", "old_price", lang === 'ar' ? "اتركه فارغاً إذا لم يكن هناك خصم" : "Leave blank if no sale"],
+                            [lang === 'ar' ? "سعر الخياطة (عماني)" : "Stitch Price (OMR)", "stitch_price", "0.000"],
+                            [lang === 'ar' ? "تكلفة الشحن (عماني) *" : "Shipping Cost (OMR) *", "shipping_cost", "2.000"],
+                            [lang === 'ar' ? "الوزن (كجم) *" : "Weight (KG) *", "weight", "0.5"]
                         ].map(([label, key, ph]) => (
                             <div key={key}>
-                                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{label}</label>
+                                <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{label}</label>
                                 <input style={inputStyle} type="number" step="0.001" placeholder={ph} value={form[key as keyof typeof form] as string} onChange={f(key as keyof typeof form)} />
                             </div>
                         ))}
@@ -227,17 +232,17 @@ export default function NewProductPage() {
 
                 {/* Section 3: Badges & Labels */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>🎖️ Badges</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={sectionTitle}>🎖️ {lang === 'ar' ? "الشارات" : "Badges"}</div>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                         {BADGE_OPTIONS.map(([key, label]) => (
                             <button key={key} type="button"
                                 onClick={() => setBadges(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key])}
                                 style={{
-                                    padding: "0.35rem 0.85rem", borderRadius: "9999px", border: "2px solid",
+                                    padding: "0.5rem 1rem", borderRadius: "9999px", border: "2px solid",
                                     borderColor: badges.includes(key) ? "var(--admin-primary)" : "var(--admin-border)",
                                     background: badges.includes(key) ? "rgba(215, 79, 144, 0.1)" : "transparent",
                                     color: badges.includes(key) ? "var(--admin-primary)" : "var(--admin-text-muted)",
-                                    cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, transition: "all 150ms",
+                                    cursor: "pointer", fontSize: "1.1rem", fontWeight: 600, transition: "all 150ms",
                                 }}>
                                 {label}
                             </button>
@@ -247,7 +252,7 @@ export default function NewProductPage() {
 
                 {/* Section 4: Images */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>🖼️ Product Images</div>
+                    <div style={sectionTitle}>🖼️ {lang === 'ar' ? "صور المنتج" : "Product Images"}</div>
                     <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => handleFileUpload(e.target.files)} />
 
                     {/* Drop Zone */}
@@ -257,14 +262,14 @@ export default function NewProductPage() {
                         onClick={() => fileInputRef.current?.click()}
                         style={{
                             border: "2px dashed var(--admin-border)", borderRadius: "12px",
-                            padding: "2rem", textAlign: "center", cursor: "pointer",
+                            padding: "3rem", textAlign: "center", cursor: "pointer",
                             background: "rgba(0,0,0,0.02)", marginBottom: "1rem",
                             transition: "all 150ms",
                         }}>
-                        <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📂</div>
-                        <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>Drag & drop images here, or click to browse</div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--admin-text-muted)", marginTop: "0.25rem" }}>JPG, PNG, WebP — max 5MB each</div>
-                        {uploadingIdx !== null && <div style={{ marginTop: "0.75rem", color: "var(--admin-primary)" }}>Uploading…</div>}
+                        <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>📂</div>
+                        <div style={{ fontWeight: 600, fontSize: "1.2rem" }}>{lang === 'ar' ? "اسحب وأفلت الصور هنا، أو انقر للاستعراض" : "Drag & drop images here, or click to browse"}</div>
+                        <div style={{ fontSize: "1rem", color: "var(--admin-text-muted)", marginTop: "0.5rem" }}>JPG, PNG, WebP — {lang === 'ar' ? "بحد أقصى 5 ميجابايت لكل صورة" : "max 5MB each"}</div>
+                        {uploadingIdx !== null && <div style={{ marginTop: "1rem", fontSize: "1.1rem", color: "var(--admin-primary)" }}>{lang === 'ar' ? "جاري الرفع..." : "Uploading…"}</div>}
                     </div>
 
                     {/* Image Previews */}
@@ -286,55 +291,55 @@ export default function NewProductPage() {
 
                 {/* Section 5: Description */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>📋 Description & Details</div>
-                    <div style={{ display: "grid", gap: "1rem" }}>
+                    <div style={sectionTitle}>📋 {lang === 'ar' ? "الوصف والتفاصيل" : "Description & Details"}</div>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gap: "1rem" }}>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Description *</label>
-                            <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" as const }} value={form.description} onChange={f("description")} placeholder="What makes this item special?" />
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "الوصف *" : "Description *"}</label>
+                            <textarea style={{ ...inputStyle, minHeight: "100px", resize: "vertical" as const }} value={form.description} onChange={f("description")} placeholder={lang === 'ar' ? "ما الذي يجعل هذا المنتج مميزاً؟" : "What makes this item special?"} />
                         </div>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Additional Details</label>
-                            <textarea style={{ ...inputStyle, minHeight: "60px", resize: "vertical" as const }} value={form.details} onChange={f("details")} placeholder="Care instructions, fit notes, etc." />
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "تفاصيل إضافية" : "Additional Details"}</label>
+                            <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" as const }} value={form.details} onChange={f("details")} placeholder={lang === 'ar' ? "تعليمات العناية، ملاحظات المقاسات، الخ." : "Care instructions, fit notes, etc."} />
                         </div>
                         <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>Shipping Note</label>
-                            <input style={inputStyle} value={form.shipping_note} onChange={f("shipping_note")} placeholder="e.g. Free shipping on orders above 10 OMR" />
+                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "ملاحظة الشحن" : "Shipping Note"}</label>
+                            <input style={inputStyle} value={form.shipping_note} onChange={f("shipping_note")} placeholder={lang === 'ar' ? "مثال: شحن مجاني للطلبات..." : "e.g. Free shipping on orders above 10 OMR"} />
                         </div>
                     </div>
                 </div>
 
                 {/* Section 6: Options (Sizes, Colors, Fabric) */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>⚙️ Product Options</div>
+                    <div style={sectionTitle}>⚙️ {lang === 'ar' ? "خيارات المنتج" : "Product Options"}</div>
                     
-                    <div style={{ marginBottom: "1.5rem" }}>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ marginBottom: "1.5rem" }}>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
-                            <input type="checkbox" checked={form.is_premade} onChange={f("is_premade")} style={{ width: 18, height: 18, accentColor: "var(--admin-primary)" }} />
+                            <input type="checkbox" checked={form.is_premade} onChange={f("is_premade")} style={{ width: 22, height: 22, accentColor: "var(--admin-primary)" }} />
                             <div>
-                                <div style={{ fontWeight: 600 }}>Is Pre-made / Ready to Wear?</div>
-                                <div style={{ fontSize: "0.75rem", color: "var(--admin-text-muted)" }}>This will hide tailoring fields and focus on sizes/colors</div>
+                                <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>{lang === 'ar' ? "هل المنتج جاهز للارتداء؟" : "Is Pre-made / Ready to Wear?"}</div>
+                                <div style={{ fontSize: "1rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "هذا سيخفي حقول الخياطة ليركز على المقاسات والألوان" : "This will hide tailoring fields and focus on sizes/colors"}</div>
                             </div>
                         </label>
                     </div>
 
-                    <div style={{ display: "grid", gap: "1.5rem" }}>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gap: "1.5rem" }}>
                         {/* Fabric Types (BESPOKE ONLY?) - actually user might want it for both */}
                         {!form.is_premade && (
                             <div>
-                                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.6rem", color: "var(--admin-text-muted)" }}>🧵 Fabric Types (Standard Options)</label>
+                                <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.6rem", color: "var(--admin-text-muted)" }}>🧵 {lang === 'ar' ? "أنواع الأقمشة المعتمدة" : "Fabric Types (Standard Options)"}</label>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                                     {fabricTypes.map((f, i) => (
-                                        <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                                        <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "6px 14px", borderRadius: "9999px", fontSize: "1rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
                                             {f}
-                                            <button type="button" onClick={() => setFabricTypes(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem", lineHeight: 1 }}>×</button>
+                                            <button type="button" onClick={() => setFabricTypes(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "1.1rem", lineHeight: 1 }}>×</button>
                                         </span>
                                     ))}
                                 </div>
                                 <div style={{ display: "flex", gap: "0.5rem" }}>
                                     <input style={{ ...inputStyle, flex: 1 }} value={fabricInput} onChange={e => setFabricInput(e.target.value)}
                                         onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addFabric(); } }}
-                                        placeholder="Add fabric type..." />
-                                    <button type="button" onClick={addFabric} style={{ padding: "0.6rem 1rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600 }}>+ Add</button>
+                                        placeholder={lang === 'ar' ? "إضافة نوع قماش..." : "Add fabric type..."} />
+                                    <button type="button" onClick={addFabric} style={{ padding: "0.8rem 1.2rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontSize: "1rem", fontWeight: 600 }}>+ {lang === 'ar' ? "إضافة" : "Add"}</button>
                                 </div>
                             </div>
                         )}
@@ -342,43 +347,43 @@ export default function NewProductPage() {
                         {/* NEW: Dynamic Options System */}
                         <div style={{ borderTop: "1px solid var(--admin-border)", paddingTop: "1.5rem" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--admin-text)", textTransform: "uppercase" }}>Custom Option Groups</label>
+                                <label style={{ display: "block", fontSize: "1.1rem", fontWeight: 700, color: "var(--admin-text)", textTransform: "uppercase" }}>{lang === 'ar' ? "خيارات التخصيص" : "Custom Option Groups"}</label>
                                 <button type="button" 
                                     onClick={() => setOptions(prev => [...prev, { title: "", values: [] }])}
-                                    style={{ padding: "0.35rem 0.85rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}>
-                                    + Add Group
+                                    style={{ padding: "0.5rem 1rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>
+                                    + {lang === 'ar' ? "إضافة مجموعة" : "Add Group"}
                                 </button>
                             </div>
                             
                             <div style={{ display: "grid", gap: "1rem" }}>
                                 {options.map((group, gIdx) => (
-                                    <div key={gIdx} style={{ background: "rgba(0,0,0,0.02)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--admin-border)" }}>
+                                    <div key={gIdx} style={{ background: "rgba(0,0,0,0.02)", padding: "1.25rem", borderRadius: "8px", border: "1px solid var(--admin-border)" }}>
                                         <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
                                             <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--admin-text-muted)" }}>Group Title (e.g. Size, Color, Fit)</label>
+                                                <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "عنوان المجموعة (مثال: المقاس، اللون)" : "Group Title (e.g. Size, Color, Fit)"}</label>
                                                 <input style={inputStyle} value={group.title} 
                                                     onChange={e => setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, title: e.target.value } : g))}
-                                                    placeholder="Option Title" />
+                                                    placeholder={lang === 'ar' ? "العنوان" : "Option Title"} />
                                             </div>
                                             <button type="button" onClick={() => setOptions(prev => prev.filter((_, i) => i !== gIdx))}
-                                                style={{ alignSelf: "flex-end", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "8px", height: "38px", width: "38px", cursor: "pointer", fontSize: "1.2rem" }}>
+                                                style={{ alignSelf: "flex-end", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "8px", height: "46px", width: "46px", cursor: "pointer", fontSize: "1.6rem" }}>
                                                 ×
                                             </button>
                                         </div>
                                         
                                         <div>
-                                            <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 600, marginBottom: "0.5rem", color: "var(--admin-text-muted)" }}>Values</label>
-                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                                            <label style={{ display: "block", fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "القيم المتاحة" : "Values"}</label>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                                                 {group.values.map((val, vIdx) => (
-                                                    <span key={vIdx} style={{ background: "var(--admin-primary)", color: "#fff", padding: "2px 10px", borderRadius: "4px", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                                                    <span key={vIdx} style={{ background: "var(--admin-primary)", color: "#fff", padding: "4px 12px", borderRadius: "4px", fontSize: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
                                                         {val}
                                                         <button type="button" onClick={() => setOptions(prev => prev.map((g, i) => i === gIdx ? { ...g, values: g.values.filter((_, vi) => vi !== vIdx) } : g))} 
-                                                            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: "0.9rem" }}>×</button>
+                                                            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: "1.2rem" }}>×</button>
                                                     </span>
                                                 ))}
                                             </div>
                                             <div style={{ display: "flex", gap: "0.5rem" }}>
-                                                <input id={`opt-val-${gIdx}`} style={{ ...inputStyle, fontSize: "0.75rem", padding: "0.4rem 0.6rem" }} placeholder="New Value..." 
+                                                <input id={`opt-val-${gIdx}`} style={{ ...inputStyle, padding: "0.6rem 0.8rem" }} placeholder={lang === 'ar' ? "قيمة جديدة..." : "New Value..."} 
                                                     onKeyDown={e => {
                                                         if (e.key === "Enter") {
                                                             e.preventDefault();
@@ -399,14 +404,14 @@ export default function NewProductPage() {
                                                             el.value = "";
                                                         }
                                                     }}
-                                                    style={{ padding: "0 0.75rem", background: "var(--admin-text)", color: "var(--admin-surface)", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.7rem", fontWeight: 700 }}>
-                                                    Add
+                                                    style={{ padding: "0 1rem", background: "var(--admin-text)", color: "var(--admin-surface)", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>
+                                                    {lang === 'ar' ? "إضافة" : "Add"}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                {options.length === 0 && <div style={{ textAlign: "center", padding: "1.5rem", border: "1px dashed var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-muted)", fontSize: "0.8rem" }}>No custom options added yet. Click "+ Add Group" to define sizes, colors, etc.</div>}
+                                {options.length === 0 && <div style={{ textAlign: "center", padding: "1.5rem", border: "1px dashed var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-muted)", fontSize: "1.1rem" }}>{lang === 'ar' ? "لا يوجد أي مجموعات تخصيص. اضغط إضافة للبدء." : "No custom options added yet. Click '+ Add Group' to define sizes, colors, etc."}</div>}
                             </div>
                         </div>
                     </div>
@@ -415,19 +420,19 @@ export default function NewProductPage() {
                 {/* Section 7: Necklines */}
                 {!form.is_premade && (
                     <div style={sectionStyle}>
-                        <div style={sectionTitle}>👔 Neckline Shapes</div>
+                        <div style={sectionTitle}>👔 {lang === 'ar' ? "أشكال الرقبة" : "Neckline Shapes"}</div>
                         {necklines.length > 0 && (
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                            <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                                 {necklines.map((n, i) => (
-                                    <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "4px 12px", borderRadius: "9999px", fontSize: "0.8rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <span key={i} style={{ background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", padding: "6px 14px", borderRadius: "9999px", fontSize: "1rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
                                         {n}
-                                        <button type="button" onClick={() => setNecklines(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "0.9rem", lineHeight: 1 }}>×</button>
+                                        <button type="button" onClick={() => setNecklines(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: "1.2rem", lineHeight: 1 }}>×</button>
                                     </span>
                                 ))}
                             </div>
                         )}
                         {dbNecklines.length > 0 ? (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem" }}>
+                            <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem" }}>
                                 {dbNecklines.map(shape => {
                                     const selected = necklines.includes(shape.name);
                                     return (
@@ -441,20 +446,20 @@ export default function NewProductPage() {
                                                 cursor: "pointer", padding: "0.5rem", textAlign: "center",
                                                 transition: "all 150ms", position: "relative",
                                             }}>
-                                            {selected && <div style={{ position: "absolute", top: "4px", right: "4px", background: "var(--admin-primary)", color: "#fff", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.6rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✓</div>}
+                                            {selected && <div style={{ position: "absolute", top: "4px", right: "4px", background: "var(--admin-primary)", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✓</div>}
                                             {shape.image_url ? (
                                                 <img src={shape.image_url} alt={shape.name} style={{ width: "100%", aspectRatio: "1", objectFit: "contain", borderRadius: "6px", marginBottom: "0.4rem" }} />
                                             ) : (
                                                 <div style={{ fontSize: "2rem", marginBottom: "0.4rem" }}>👔</div>
                                             )}
-                                            <div style={{ fontSize: "0.72rem", fontWeight: 600, color: selected ? "var(--admin-primary)" : "var(--admin-text)" }}>{shape.name}</div>
+                                            <div style={{ fontSize: "0.9rem", fontWeight: 600, color: selected ? "var(--admin-primary)" : "var(--admin-text)" }}>{shape.name}</div>
                                         </button>
                                     );
                                 })}
                             </div>
                         ) : (
-                            <div style={{ color: "var(--admin-text-muted)", fontSize: "0.85rem", padding: "1rem", textAlign: "center", border: "1px dashed var(--admin-border)", borderRadius: "8px" }}>
-                                No neckline shapes yet. <a href="/admin/necklines" target="_blank" style={{ color: "var(--admin-primary)" }}>Add some →</a>
+                            <div style={{ color: "var(--admin-text-muted)", fontSize: "1.1rem", padding: "1.5rem", textAlign: "center", border: "1px dashed var(--admin-border)", borderRadius: "8px" }}>
+                                {lang === 'ar' ? "لم تتم إضافة أي أشكال للقصات بعد." : "No neckline shapes yet."} <a href="/admin/necklines" target="_blank" style={{ color: "var(--admin-primary)" }}>{lang === 'ar' ? "إضافة تصاميم ←" : "Add some →"}</a>
                             </div>
                         )}
                     </div>
@@ -463,18 +468,18 @@ export default function NewProductPage() {
                 {/* Section 8: Accessories */}
                 <div style={sectionStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                        <div style={sectionTitle}>💎 Accessories</div>
-                        <button type="button" onClick={addAccessory} style={{ padding: "0.35rem 0.85rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}>+ Add Row</button>
+                        <div style={sectionTitle}>💎 {lang === 'ar' ? "الملحقات" : "Accessories"}</div>
+                        <button type="button" onClick={addAccessory} style={{ padding: "0.5rem 1rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>+ {lang === 'ar' ? "إضافة" : "Add Row"}</button>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "0.75rem", fontSize: "0.75rem", fontWeight: 700, color: "var(--admin-text-muted)", padding: "0 0.25rem" }}>
-                            <span>Name</span><span>Price (OMR)</span><span></span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "1rem", fontSize: "1rem", fontWeight: 700, color: "var(--admin-text-muted)", padding: "0 0.25rem" }}>
+                            <span>{lang === 'ar' ? "الاسم" : "Name"}</span><span>{lang === 'ar' ? "السعر (عماني)" : "Price (OMR)"}</span><span></span>
                         </div>
                         {accessories.map((a, i) => (
-                            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "0.75rem", alignItems: "center" }}>
-                                <input style={inputStyle} value={a.name} onChange={e => updateAccessory(i, "name", e.target.value)} placeholder="e.g. Cufflinks" />
-                                <input style={{ ...inputStyle, width: "100px" }} type="number" step="0.001" value={a.price} onChange={e => updateAccessory(i, "price", e.target.value)} placeholder="0.000" />
-                                <button type="button" onClick={() => removeAccessory(i)} style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "6px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1rem" }}>×</button>
+                            <div dir={lang === 'ar' ? 'rtl' : 'ltr'} key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "1rem", alignItems: "center" }}>
+                                <input style={inputStyle} value={a.name} onChange={e => updateAccessory(i, "name", e.target.value)} placeholder={lang === 'ar' ? "مثال: أزرار معدنية" : "e.g. Cufflinks"} />
+                                <input style={{ ...inputStyle, width: "120px" }} type="number" step="0.001" value={a.price} onChange={e => updateAccessory(i, "price", e.target.value)} placeholder="0.000" />
+                                <button type="button" onClick={() => removeAccessory(i)} style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "6px", width: "42px", height: "42px", cursor: "pointer", fontSize: "1.4rem" }}>×</button>
                             </div>
                         ))}
                     </div>
@@ -483,18 +488,18 @@ export default function NewProductPage() {
                 {/* Section 9: Specs */}
                 <div style={sectionStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                        <div style={sectionTitle}>📊 Product Specs</div>
-                        <button type="button" onClick={addSpec} style={{ padding: "0.35rem 0.85rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}>+ Add Spec</button>
+                        <div style={sectionTitle}>📊 {lang === 'ar' ? "المواصفات التقنية" : "Product Specs"}</div>
+                        <button type="button" onClick={addSpec} style={{ padding: "0.5rem 1rem", borderRadius: "8px", background: "rgba(215,79,144,0.1)", color: "var(--admin-primary)", border: "none", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>+ {lang === 'ar' ? "إضافة مواصفات" : "Add Spec"}</button>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "0.75rem", fontSize: "0.75rem", fontWeight: 700, color: "var(--admin-text-muted)", padding: "0 0.25rem" }}>
-                            <span>Label</span><span>Value</span><span></span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "1rem", fontSize: "1rem", fontWeight: 700, color: "var(--admin-text-muted)", padding: "0 0.25rem" }}>
+                            <span>{lang === 'ar' ? "التسمية" : "Label"}</span><span>{lang === 'ar' ? "القيمة" : "Value"}</span><span></span>
                         </div>
                         {specs.map((s, i) => (
-                            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "0.75rem", alignItems: "center" }}>
-                                <input style={inputStyle} value={s.label} onChange={e => updateSpec(i, "label", e.target.value)} placeholder="e.g. Material" />
-                                <input style={inputStyle} value={s.value} onChange={e => updateSpec(i, "value", e.target.value)} placeholder="e.g. 100% Cotton" />
-                                <button type="button" onClick={() => removeSpec(i)} style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "6px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1rem" }}>×</button>
+                            <div dir={lang === 'ar' ? 'rtl' : 'ltr'} key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "1rem", alignItems: "center" }}>
+                                <input style={inputStyle} value={s.label} onChange={e => updateSpec(i, "label", e.target.value)} placeholder={lang === 'ar' ? "مثال: الخامة" : "e.g. Material"} />
+                                <input style={inputStyle} value={s.value} onChange={e => updateSpec(i, "value", e.target.value)} placeholder={lang === 'ar' ? "مثال: قطن 100%" : "e.g. 100% Cotton"} />
+                                <button type="button" onClick={() => removeSpec(i)} style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: "6px", width: "42px", height: "42px", cursor: "pointer", fontSize: "1.4rem" }}>×</button>
                             </div>
                         ))}
                     </div>
@@ -502,21 +507,23 @@ export default function NewProductPage() {
 
                 {/* Section 10: Visibility */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>👁️ Visibility</div>
-                    <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
-                        <input type="checkbox" id="ms" checked={form.most_selling} onChange={f("most_selling")} style={{ width: 18, height: 18, accentColor: "var(--admin-primary)" }} />
-                        <div>
-                            <div style={{ fontWeight: 600 }}>Feature on Homepage</div>
-                            <div style={{ fontSize: "0.75rem", color: "var(--admin-text-muted)" }}>Show in the "Most Selling" section</div>
-                        </div>
-                    </label>
+                    <div style={sectionTitle}>👁️ {lang === 'ar' ? "الرؤية والترويج" : "Visibility"}</div>
+                    <div dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
+                            <input type="checkbox" id="ms" checked={form.most_selling} onChange={f("most_selling")} style={{ width: 22, height: 22, accentColor: "var(--admin-primary)" }} />
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>{lang === 'ar' ? "عرض في الصفحة الرئيسية" : "Feature on Homepage"}</div>
+                                <div style={{ fontSize: "1rem", color: "var(--admin-text-muted)" }}>{lang === 'ar' ? "إظهار المنتج في قسم 'الأكثر مبيعاً'" : "Show in the 'Most Selling' section"}</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", paddingBottom: "3rem" }}>
-                    <button type="button" onClick={() => router.back()} style={{ padding: "0.75rem 1.5rem", borderRadius: "8px", background: "rgba(0,0,0,0.05)", border: "none", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
-                    <button type="submit" disabled={loading} style={{ padding: "0.75rem 2rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "0.95rem" }}>
-                        {loading ? "Creating…" : "✓ Create Product"}
+                <div dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", paddingBottom: "3rem" }}>
+                    <button type="button" onClick={() => router.back()} style={{ padding: "1rem 2rem", borderRadius: "8px", background: "rgba(0,0,0,0.05)", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "1.1rem" }}>{lang === 'ar' ? "إلغاء" : "Cancel"}</button>
+                    <button type="submit" disabled={loading} style={{ padding: "1rem 3rem", borderRadius: "8px", background: "var(--admin-primary)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "1.2rem", boxShadow: "0 4px 12px rgba(215, 79, 144, 0.2)" }}>
+                        {loading ? (lang === 'ar' ? "جاري الإنشاء..." : "Creating…") : (lang === 'ar' ? "✓ إنشاء ونشر المنتج" : "✓ Create Product")}
                     </button>
                 </div>
             </form>

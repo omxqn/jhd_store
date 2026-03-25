@@ -13,51 +13,38 @@ export const metadata: Metadata = {
   description: "Discover premium thobes, abayas and traditional GCC garments. Custom tailoring available.",
 };
 
+import { LanguageProvider } from "@/context/LanguageContext";
+import { MarqueeBanner } from "@/components/MarqueeBanner";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <Suspense fallback={null}>
-            <GlobalLoader />
-          </Suspense>
-          <div style={{
-            background: "var(--primary)",
-            color: "#fff",
-            padding: "clamp(4px, 1.5vw, 10px) 0",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)",
-            fontWeight: 700,
-            fontFamily: "var(--ff-serif)",
-            letterSpacing: "0.5px",
-            textAlign: "center",
-            position: "relative",
-            zIndex: 1000,
-            width: "100%"
-          }}>
-            <div style={{ display: "inline-block", animation: "marquee 25s linear infinite" }}>
-              استخدم كود OMAN10 للحصول على خصم 10% على طلبك الأول! 🎁 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; شحن مجاني لجميع دول الخليج للطلبات فوق 500 ريال
-            </div>
-          </div>
-          <Header />
-          <main style={{ minHeight: "calc(100vh - 72px)" }}>
-            <AnimationWrapper>{children}</AnimationWrapper>
-          </main>
-          <Footer />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: "var(--surface)",
-                color: "var(--text)",
-                border: "1px solid var(--border)",
-                borderRadius: ".75rem",
-                boxShadow: "var(--shadow-md)"
-              },
-            }}
-          />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Suspense fallback={null}>
+              <GlobalLoader />
+            </Suspense>
+            <MarqueeBanner />
+            <Header />
+            <main style={{ minHeight: "calc(100vh - 72px)" }}>
+              <AnimationWrapper>{children}</AnimationWrapper>
+            </main>
+            <Footer />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "var(--surface)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  borderRadius: ".75rem",
+                  boxShadow: "var(--shadow-md)"
+                },
+              }}
+            />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -6,7 +6,7 @@ async function updateProduct(req: NextRequest, _auth: JWTPayload, id: string) {
     try {
         const data = await req.json();
         const fields = ["name", "category", "price", "old_price", "images", "badges", "availability", "description", "details",
-            "fabric_types", "neckline_shapes", "stitch_price", "accessories", "shipping_note", "most_selling", "specs", "stock", "shipping_cost", "sizes", "colors", "is_premade", "options"];
+            "fabric_types", "neckline_shapes", "stitch_price", "accessories", "shipping_note", "most_selling", "specs", "stock", "shipping_cost", "sizes", "colors", "is_premade", "options", "weight"];
         const jsonFields = new Set(["images", "badges", "fabric_types", "neckline_shapes", "accessories", "specs", "sizes", "colors", "options"]);
         const boolFields = new Set(["most_selling", "is_premade"]);
 

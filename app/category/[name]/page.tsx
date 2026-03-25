@@ -94,7 +94,7 @@ export default function CategoryPage() {
             <div className={styles.noResultsIcon}>✨</div>
             <h2 className={styles.noResultsTitle}>Soon...</h2>
             <p className={styles.noResultsDesc}>We are currently curating the "{category?.name || rawName}" collection. Stay tuned!</p>
-            <Link href="/" className={styles.backBtn}>← Back to Boutique</Link>
+            <Link href="/" className={styles.backBtn}>← Back to Store</Link>
         </motion.div>
     );
 

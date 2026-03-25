@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore, formatPrice } from "@/lib/store";
 import { COUNTRIES } from "@/lib/data";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
 
 import styles from "../admin.module.css";
 
@@ -13,6 +14,7 @@ const STATUSES = ["all", "paid", "processing", "shipped", "delivered", "refunded
 const statusColor: Record<string, string> = { paid: "#3b82f6", processing: "#f59e0b", shipped: "#8fa6c4", delivered: "#22c55e" };
 
 export default function AdminOrdersPage() {
+    const { lang, t, isRTL } = useLanguage();
     const router = useRouter();
     const [orders, setOrders] = useState<any[]>([]);
     const [filter, setFilter] = useState("all");
@@ -43,8 +45,8 @@ export default function AdminOrdersPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status }),
         });
-        if (res.ok) { toast.success("Status updated"); load(filter); }
-        else toast.error("Failed to update");
+        if (res.ok) { toast.success(lang === 'ar' ? "تم تحديث الحالة" : "Status updated"); load(filter); }
+        else toast.error(lang === 'ar' ? "فشل التحديث" : "Failed to update");
         setUpdating(null);
     };
 
@@ -58,7 +60,7 @@ export default function AdminOrdersPage() {
                 setEditForm({ ...data.order });
             }
         } catch (err) {
-            toast.error("Failed to load details");
+            toast.error(lang === 'ar' ? "فشل تحميل التفاصيل" : "Failed to load details");
         } finally {
             setUpdating(null);
         }
@@ -74,12 +76,12 @@ export default function AdminOrdersPage() {
                 body: JSON.stringify(editForm),
             });
             if (res.ok) {
-                toast.success("Changes saved ○");
+                toast.success(lang === 'ar' ? "تم حفظ التغييرات ○" : "Changes saved ○");
                 setEditingOrder(null);
                 load(filter);
             } else {
                 const data = await res.json();
-                throw new Error(data.error || "Save failed");
+                throw new Error(data.error || (lang === 'ar' ? "فشل الحفظ" : "Save failed"));
             }
         } catch (err: any) {
             toast.error(err.message);
@@ -89,10 +91,10 @@ export default function AdminOrdersPage() {
     };
 
     const handleQuickRefund = async () => {
-        const amountStr = prompt("Enter Refund Amount (OMR):", "0");
+        const amountStr = prompt(lang === 'ar' ? "أدخل مبلغ الاسترجاع (ر.ع):" : "Enter Refund Amount (OMR):", "0");
         if (amountStr === null) return;
         const amount = parseFloat(amountStr);
-        if (isNaN(amount) || amount < 0) return toast.error("Invalid amount");
+        if (isNaN(amount) || amount < 0) return toast.error(lang === 'ar' ? "مبلغ غير صحيح" : "Invalid amount");
 
         setUpdating(editingOrder.id);
         try {
@@ -102,12 +104,12 @@ export default function AdminOrdersPage() {
                 body: JSON.stringify({ refunded_amount: amount }),
             });
             if (res.ok) {
-                toast.success("Refund processed and status set to REFUNDED");
+                toast.success(lang === 'ar' ? "تمت عملية الاسترجاع وتعديل الحالة إلى مسترجع" : "Refund processed and status set to REFUNDED");
                 setEditingOrder(null);
                 load(filter);
             } else {
                 const data = await res.json();
-                throw new Error(data.error || "Refund failed");
+                throw new Error(data.error || (lang === 'ar' ? "فشل الاسترجاع" : "Refund failed"));
             }
         } catch (err: any) {
             toast.error(err.message);
@@ -118,16 +120,16 @@ export default function AdminOrdersPage() {
 
     return (
         <div>
-            <div className={styles.pageHeader}>
+            <div className={styles.pageHeader} style={{ textAlign: isRTL ? 'right' : 'left', flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                 <div>
-                    <h1 className={styles.pageTitle}>Orders <span>Management</span></h1>
-                    <p style={{ color: "var(--admin-text-muted)", fontSize: ".875rem" }}>{orders.length} orders tracked</p>
+                    <h1 className={styles.pageTitle}>{lang === 'ar' ? "إدارة " : "Orders "} <span>{lang === 'ar' ? "الطلبات" : "Management"}</span></h1>
+                    <p style={{ color: "var(--admin-text-muted)", fontSize: "1.56rem" }}>{orders.length} {lang === 'ar' ? "طلب تحت المتابعة" : "orders tracked total"}</p>
                 </div>
-                <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                     {STATUSES.map(s => (
                         <button key={s} onClick={() => { setFilter(s); load(s); }}
-                            style={{ padding: ".35rem .875rem", borderRadius: "9999px", border: `1px solid ${filter === s ? "var(--admin-primary)" : "var(--admin-border)"}`, background: filter === s ? "rgba(215, 79, 144, 0.1)" : "var(--admin-surface)", color: filter === s ? "var(--admin-primary)" : "var(--admin-text-muted)", fontSize: ".75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textTransform: "capitalize", transition: "all 200ms ease" }}>
-                            {s}
+                            style={{ padding: ".75rem 1.5rem", borderRadius: "9999px", border: `1px solid ${filter === s ? "var(--admin-primary)" : "var(--admin-border)"}`, background: filter === s ? "rgba(215, 79, 144, 0.1)" : "var(--admin-surface)", color: filter === s ? "var(--admin-primary)" : "var(--admin-text-muted)", fontSize: "1.25rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textTransform: "capitalize", transition: "all 200ms ease" }}>
+                            {lang === 'ar' ? (s === 'all' ? 'الكل' : s) : s}
                         </button>
                     ))}
                 </div>
@@ -136,9 +138,17 @@ export default function AdminOrdersPage() {
             <div className={styles.tableWrapper}>
                 <table className={styles.table}>
                     <thead>
-                        <tr>
-                            {["Order #", "Customer", "Total", "Refunded", "Status", "Actions", "Date"].map(h => (
-                                <th key={h} style={{ whiteSpace: "nowrap" }}>{h}</th>
+                        <tr style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                            {[
+                                lang === 'ar' ? "رقم الطلب #" : "Order #",
+                                lang === 'ar' ? "العميل" : "Customer",
+                                lang === 'ar' ? "الإجمالي" : "Total",
+                                lang === 'ar' ? "المسترجع" : "Refunded",
+                                lang === 'ar' ? "الحالة" : "Status",
+                                lang === 'ar' ? "الإجراءات" : "Actions",
+                                lang === 'ar' ? "التاريخ" : "Date"
+                            ].map(h => (
+                                <th key={h} style={{ whiteSpace: "nowrap", textAlign: isRTL ? 'right' : 'left' }}>{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -162,31 +172,31 @@ export default function AdminOrdersPage() {
                                 </td>
                                 <td>
                                     <div style={{ fontWeight: 600 }}>{o.name}</div>
-                                    <div style={{ color: "var(--admin-text-muted)", fontSize: ".75rem" }}>{o.email}</div>
+                                    <div style={{ color: "var(--admin-text-muted)", fontSize: "1.25rem" }}>{o.email}</div>
                                 </td>
                                 <td style={{ fontWeight: 700 }}>{formatPrice(o.total, omr)}</td>
                                 <td style={{ color: Number(o.refunded_amount) > 0 ? "#ef4444" : "inherit", fontWeight: Number(o.refunded_amount) > 0 ? 700 : 400 }}>
                                     {o.refunded_amount > 0 ? `-${formatPrice(o.refunded_amount, omr)}` : "—"}
                                 </td>
                                 <td>
-                                    <span style={{ background: `${statusColor[o.status]}22`, color: statusColor[o.status], padding: "3px 8px", borderRadius: "9999px", fontSize: ".7rem", fontWeight: 700 }}>{o.status}</span>
+                                    <span style={{ background: `${statusColor[o.status]}22`, color: statusColor[o.status], padding: "6px 16px", borderRadius: "9999px", fontSize: "1.1rem", fontWeight: 700 }}>{o.status}</span>
                                 </td>
                                 <td onClick={(e) => e.stopPropagation()}>
-                                    <div style={{ display: "flex", gap: ".5rem" }}>
+                                    <div style={{ display: "flex", gap: "1rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                                         <button
                                             onClick={() => handleEditClick(o)}
                                             disabled={updating === o.id}
                                             className={styles.adminBtnSecondary}
-                                            style={{ padding: "4px 8px", fontSize: "0.7rem", borderRadius: "6px" }}
+                                            style={{ padding: ".75rem 1.25rem", fontSize: "1.2rem", borderRadius: "10px", fontWeight: 700, cursor: "pointer" }}
                                         >
-                                            {updating === o.id ? "..." : "Details/Refund"}
+                                            {updating === o.id ? "..." : (lang === 'ar' ? "التفاصيل / الاسترجاع" : "Details/Refund")}
                                         </button>
                                         <select
                                             className={styles.adminInput}
                                             value={o.status}
                                             disabled={updating === o.id}
                                             onChange={e => updateStatus(o.id, e.target.value)}
-                                            style={{ fontSize: ".75rem", padding: ".3rem .5rem", width: "auto" }}>
+                                            style={{ fontSize: "1.2rem", padding: ".7rem 1.25rem", width: "auto" }}>
                                             <option value="paid">paid</option>
                                             <option value="processing">processing</option>
                                             <option value="shipped">shipped</option>
@@ -195,7 +205,7 @@ export default function AdminOrdersPage() {
                                         </select>
                                     </div>
                                 </td>
-                                <td style={{ color: "var(--admin-text-muted)", fontSize: ".8rem" }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                                <td style={{ color: "var(--admin-text-muted)", fontSize: "1.3rem", textAlign: isRTL ? 'right' : 'left' }}>{new Date(o.created_at).toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-GB")}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -206,33 +216,33 @@ export default function AdminOrdersPage() {
             {editingOrder && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContent} style={{ maxWidth: "800px" }}>
-                        <div className={styles.modalHeader}>
-                            <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>Order <span style={{ color: "var(--admin-primary)" }}>#{editingOrder.id}</span></h2>
-                            <button onClick={() => setEditingOrder(null)} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer" }}>×</button>
+                        <div className={styles.modalHeader} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                            <h2 style={{ fontSize: "2.25rem", fontWeight: 700 }}>{lang === 'ar' ? "الطلب" : "Order"} <span style={{ color: "var(--admin-primary)" }}>#{editingOrder.id}</span></h2>
+                            <button onClick={() => setEditingOrder(null)} style={{ background: "none", border: "none", fontSize: "3rem", cursor: "pointer", color: "var(--admin-text-muted)" }}>×</button>
                         </div>
-                        <div className={styles.modalBody}>
+                        <div className={styles.modalBody} style={{ textAlign: isRTL ? 'right' : 'left' }}>
 
                             {/* Items Section */}
                             <div className={styles.formSection}>
-                                <h3 className={styles.formSectionTitle}>Order Items ({editingOrder.items?.length || 0})</h3>
+                                <h3 className={styles.formSectionTitle}>{lang === 'ar' ? "منتجات الطلب" : "Order Items"} ({editingOrder.items?.length || 0})</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                                     {editingOrder.items?.map((item: any, idx: number) => (
-                                        <div key={idx} style={{ padding: "1rem", background: "rgba(255,255,255,0.5)", borderRadius: "8px", border: "1px solid var(--admin-border)", display: "flex", gap: "1rem" }}>
-                                            <img src={item.image} style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "4px" }} alt="" />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 700, fontSize: ".9rem" }}>{item.name}</div>
-                                                <div style={{ fontSize: ".75rem", color: "var(--admin-text-muted)", marginTop: ".25rem" }}>
-                                                    {item.fabric_type} | {item.neckline} {item.stitch ? "| Premium Stitch" : ""}
+                                        <div key={idx} style={{ padding: "1.5rem", background: "rgba(255,255,255,0.5)", borderRadius: "12px", border: "1px solid var(--admin-border)", display: "flex", gap: "1.5rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                                            <img src={item.image} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }} alt="" />
+                                            <div style={{ flex: 1, textAlign: isRTL ? 'right' : 'left' }}>
+                                                <div style={{ fontWeight: 700, fontSize: "1.5rem" }}>{item.name}</div>
+                                                <div style={{ fontSize: "1.3rem", color: "var(--admin-text-muted)", marginTop: ".5rem" }}>
+                                                    {item.fabric_type} | {item.neckline} {item.stitch ? (lang === 'ar' ? "| خياطة بريميوم" : "| Premium Stitch") : ""}
                                                 </div>
                                                 {item.tailor_measurements && (
-                                                    <div style={{ fontSize: ".7rem", background: "#eee", padding: "4px", borderRadius: "4px", marginTop: "4px" }}>
-                                                        <strong>Measurements:</strong> {Object.entries(typeof item.tailor_measurements === 'string' ? JSON.parse(item.tailor_measurements) : item.tailor_measurements).map(([k, v]) => `${k}: ${v}`).join(", ")}
+                                                    <div style={{ fontSize: "1.2rem", background: "#eee", padding: "8px", borderRadius: "8px", marginTop: "10px" }}>
+                                                        <strong>{lang === 'ar' ? "المقاسات:" : "Measurements:"}</strong> {Object.entries(typeof item.tailor_measurements === 'string' ? JSON.parse(item.tailor_measurements) : item.tailor_measurements).map(([k, v]) => `${k}: ${v}`).join(", ")}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div style={{ textAlign: "right" }}>
-                                                <div style={{ fontWeight: 700 }}>{formatPrice(item.price, omr)}</div>
-                                                <div style={{ fontSize: ".75rem" }}>Qty: {item.quantity}</div>
+                                            <div style={{ textAlign: isRTL ? 'left' : "right" }}>
+                                                <div style={{ fontWeight: 700, fontSize: "1.5rem" }}>{formatPrice(item.price, omr)}</div>
+                                                <div style={{ fontSize: "1.3rem" }}>{lang === 'ar' ? "الكمية:" : "Qty:"} {item.quantity}</div>
                                             </div>
                                         </div>
                                     ))}
@@ -240,26 +250,26 @@ export default function AdminOrdersPage() {
                             </div>
 
                             <div className={styles.formSection}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <h3 className={styles.formSectionTitle}>Financial Adjustments</h3>
-                                    {!isSuper && <span style={{ fontSize: ".7rem", color: "#666", background: "#eee", padding: "2px 6px", borderRadius: "4px" }}>Admins can only adjust Refunds</span>}
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                                    <h3 className={styles.formSectionTitle}>{lang === 'ar' ? "التعديلات المالية" : "Financial Adjustments"}</h3>
+                                    {!isSuper && <span style={{ fontSize: "1.1rem", color: "#666", background: "#eee", padding: "4px 10px", borderRadius: "6px" }}>{lang === 'ar' ? "المسؤولون مقيدون بالاسترجاع فقط" : "Admins restricted to Refunds"}</span>}
                                 </div>
                                 <div className={styles.formGrid}>
 
                                     <div className="formGroup">
                                         <label className="formLabel">Refunded Amount (OMR)</label>
-                                        <div style={{ display: "flex", gap: ".5rem" }}>
+                                        <div style={{ display: "flex", gap: "1rem" }}>
                                             <input
                                                 type="number" step="0.001" className={styles.adminInput}
                                                 value={editForm.refunded_amount}
                                                 readOnly={false}
                                                 onChange={e => setEditForm({ ...editForm, refunded_amount: parseFloat(e.target.value) })}
-                                                style={{ borderColor: "#ef4444" }}
+                                                style={{ borderColor: "#ef4444", fontSize: "1.5rem" }}
                                             />
                                             <button
                                                 onClick={handleQuickRefund}
                                                 className={styles.adminBtn}
-                                                style={{ background: "#ef4444", fontSize: ".7rem", padding: "5px 10px", whiteSpace: "nowrap" }}
+                                                style={{ background: "#ef4444", fontSize: "1.2rem", padding: "0.5rem 1.5rem", whiteSpace: "nowrap" }}
                                             >
                                                 Issue Refund
                                             </button>
@@ -270,13 +280,14 @@ export default function AdminOrdersPage() {
                                         <div className="formGroup">
                                             <label className="formLabel">Applied Voucher</label>
                                             <div style={{ 
-                                                padding: "0.75rem", 
+                                                padding: "1.5rem", 
                                                 background: "rgba(215, 79, 144, 0.05)", 
-                                                border: "1px dashed var(--admin-primary)", 
-                                                borderRadius: "8px",
+                                                border: "2px dashed var(--admin-primary)", 
+                                                borderRadius: "12px",
                                                 color: "var(--admin-primary)",
                                                 fontWeight: 800,
-                                                letterSpacing: "1px",
+                                                fontSize: "1.5rem",
+                                                letterSpacing: "2px",
                                                 textAlign: "center"
                                             }}>
                                                 {editingOrder.voucher_code}
@@ -287,55 +298,58 @@ export default function AdminOrdersPage() {
                             </div>
 
                             <div className={styles.formSection}>
-                                <h3 className={styles.formSectionTitle}>Destination Details</h3>
+                                <h3 className={styles.formSectionTitle}>{lang === 'ar' ? "تفاصيل الوجهة" : "Destination Details"}</h3>
                                 <div className={styles.formGrid}>
                                     <div className="formGroup">
-                                        <label className="formLabel">Customer Name</label>
+                                        <label className="formLabel">{lang === 'ar' ? "اسم العميل" : "Customer Name"}</label>
                                         <input
                                             className={styles.adminInput}
                                             value={editForm.name}
                                             onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                            style={{ textAlign: isRTL ? 'right' : 'left' }}
                                         />
                                     </div>
                                     <div className="formGroup">
-                                        <label className="formLabel">Direct Phone</label>
+                                        <label className="formLabel">{lang === 'ar' ? "رقم الهاتف" : "Direct Phone"}</label>
                                         <input
                                             className={styles.adminInput}
                                             value={editForm.phone}
                                             onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                                            style={{ textAlign: isRTL ? 'right' : 'left' }}
                                         />
                                     </div>
                                     <div className="formGroup" style={{ gridColumn: "span 2" }}>
-                                        <label className="formLabel">Shipping Email</label>
+                                        <label className="formLabel">{lang === 'ar' ? "بريد الشحن" : "Shipping Email"}</label>
                                         <input
                                             className={styles.adminInput}
                                             value={editForm.email}
                                             onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                                            style={{ textAlign: isRTL ? 'right' : 'left' }}
                                         />
                                     </div>
                                     <div className="formGroup" style={{ gridColumn: "span 2" }}>
-                                        <label className="formLabel">Full Destination Address</label>
+                                        <label className="formLabel">{lang === 'ar' ? "عنوان الوجهة الكامل" : "Full Destination Address"}</label>
                                         <textarea
                                             className={styles.adminInput}
                                             value={editForm.address}
                                             onChange={e => setEditForm({ ...editForm, address: e.target.value })}
-                                            style={{ minHeight: "80px" }}
+                                            style={{ minHeight: "80px", textAlign: isRTL ? 'right' : 'left' }}
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className={styles.modalFooter}>
-                            <button onClick={() => setEditingOrder(null)} className={styles.adminBtnSecondary} style={{ padding: "0.75rem 1.5rem" }}>
-                                Discard
+                        <div className={styles.modalFooter} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                            <button onClick={() => setEditingOrder(null)} className={styles.adminBtnSecondary} style={{ padding: "1.25rem 2.5rem", fontSize: "1.4rem", borderRadius: "12px", cursor: "pointer" }}>
+                                {lang === 'ar' ? "إلغاء" : "Discard"}
                             </button>
                             <button
                                 onClick={handleSaveEdit}
                                 className={styles.adminBtn}
                                 disabled={updating === editingOrder.id}
-                                style={{ padding: "0.75rem 2rem" }}
+                                style={{ padding: "1.25rem 3rem" }}
                             >
-                                {updating === editingOrder.id ? "Preserving…" : "Save Changes ○"}
+                                {updating === editingOrder.id ? (lang === 'ar' ? "جاري الحفظ..." : "Preserving…") : (lang === 'ar' ? "حفظ التغييرات ○" : "Save Changes ○")}
                             </button>
                         </div>
                     </div>

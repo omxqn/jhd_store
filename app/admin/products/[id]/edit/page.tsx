@@ -39,6 +39,7 @@ export default function EditProductPage() {
         description: "", details: "", most_selling: false, stock: "100",
         shipping_cost: "2",
         is_premade: false,
+        weight: "0.5",
     });
 
     const [images, setImages] = useState<string[]>([]);
@@ -81,6 +82,7 @@ export default function EditProductPage() {
                     most_selling: !!p.most_selling, stock: p.stock ?? "100",
                     shipping_cost: p.shipping_cost ?? "2.000",
                     is_premade: !!p.is_premade,
+                    weight: p.weight ?? "0.5",
                 });
                 setImages(safeJson(p.images, []));
                 setFabricTypes(safeJson(p.fabric_types, []));
@@ -149,6 +151,7 @@ export default function EditProductPage() {
                 old_price: form.old_price ? parseFloat(form.old_price) : null,
                 stitch_price: parseFloat(form.stitch_price || "0"),
                 shipping_cost: parseFloat(form.shipping_cost || "2"),
+                weight: parseFloat(form.weight || "0.5"),
                 stock: parseInt(form.stock || "100"),
                 images,
                 badges,
@@ -244,13 +247,14 @@ export default function EditProductPage() {
 
                 {/* Section 2: Pricing */}
                 <div style={sectionStyle}>
-                    <div style={sectionTitle}>💰 Pricing</div>
+                    <div style={sectionTitle}>💰 Pricing & Logistics</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                         {[
                             ["Price (OMR) *", "price", "0.000"],
                             ["Old Price (OMR)", "old_price", "Leave blank if no sale"],
                             ["Stitch Price (OMR)", "stitch_price", "0.000"],
-                            ["Shipping Cost (OMR) *", "shipping_cost", "2.000"]
+                            ["Shipping Cost (OMR) *", "shipping_cost", "2.000"],
+                            ["Weight (KG) *", "weight", "0.5"]
                         ].map(([label, key, ph]) => (
                             <div key={key}>
                                 <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--admin-text-muted)" }}>{label}</label>

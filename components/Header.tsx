@@ -6,9 +6,11 @@ import { useStore, formatPrice } from "@/lib/store";
 import { COUNTRIES } from "@/lib/data";
 import styles from "./Header.module.css";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function Header() {
     const { country, setCountry, cart, wishlist, authUser, clearAuth } = useStore();
+    const { lang, setLang, t, isRTL } = useLanguage();
     const router = useRouter();
     const [countryOpen, setCountryOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -20,15 +22,17 @@ export function Header() {
     const profileRef = useRef<HTMLDivElement>(null);
     const countryRef = useRef<HTMLDivElement>(null);
 
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const unreadCount = notifications.filter(n => !n.read).length;
+    const supportUnread = notifications.filter(n => n.type === "support" && !n.read).length;
     const cartCount = cart.reduce((a, i) => a + i.quantity, 0);
-    const [unreadNotifs, setUnreadNotifs] = useState(0);
 
     const fetchNotifs = async () => {
-        if (!authUser) { setUnreadNotifs(0); return; }
+        if (!authUser) { setNotifications([]); return; }
         try {
             const res = await fetch("/api/notifications");
             const data = await res.json();
-            setUnreadNotifs(data.notifications?.filter((n: any) => !n.read).length || 0);
+            setNotifications(data.notifications || []);
         } catch (e) { }
     };
 
@@ -57,8 +61,18 @@ export function Header() {
 
     useEffect(() => {
         document.body.style.overflow = mobileOpen ? "hidden" : "";
-        return () => { document.body.style.overflow = ""; };
-    }, [mobileOpen]);
+        
+        if (profileOpen || mobileOpen) {
+            document.body.classList.add("hide-admin-nav");
+        } else {
+            document.body.classList.remove("hide-admin-nav");
+        }
+
+        return () => { 
+            document.body.style.overflow = ""; 
+            document.body.classList.remove("hide-admin-nav");
+        };
+    }, [mobileOpen, profileOpen]);
 
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [searchLoading, setSearchLoading] = useState(false);
@@ -103,9 +117,9 @@ export function Header() {
 
                     {/* Primary Links (Right Side in RTL) */}
                     <nav className={`${styles.primaryNav} ${styles.desktopOnly}`}>
-                        <Link href="/" className={styles.navLink}>المتجر</Link>
-                        <Link href="/policy" className={styles.navLink}>سياسة الطلب</Link>
-                        <Link href="/contact" className={styles.navLink}>الاستفسارات العامة</Link>
+                        <Link href="/" className={styles.navLink}>{t('nav.home')}</Link>
+                        <Link href="/policy" className={styles.navLink}>{t('nav.policy')}</Link>
+                        <Link href="/contact" className={styles.navLink}>{t('nav.contact')}</Link>
                     </nav>
 
                     {/* Actions (Left Side in RTL) */}
@@ -119,7 +133,7 @@ export function Header() {
                                     <input
                                         type="text"
                                         className={styles.searchInput}
-                                        placeholder="البحث عن منتج..."
+                                        placeholder={t('common.search')}
                                         autoFocus
                                         value={searchQuery}
                                         onChange={e => setSearchQuery(e.target.value)}
@@ -139,6 +153,15 @@ export function Header() {
                                     )}
                                 </div>
                             )}
+                        </div>
+
+                        <div className={styles.langPicker}>
+                            <button 
+                                className={styles.langBtn} 
+                                onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+                            >
+                                {lang === "ar" ? "EN" : "عربي"}
+                            </button>
                         </div>
 
                         <div className={styles.countryPicker} ref={countryRef}>
@@ -179,37 +202,42 @@ export function Header() {
                                     <div className={styles.profileHeader}>
                                         <div className={styles.avatar}>{authUser?.name?.charAt(0) ?? "G"}</div>
                                         <div className={styles.profileMeta}>
-                                            <div className={styles.profileName}>{authUser?.name ?? "Guest User"}</div>
-                                            <div className={styles.profileEmail}>{authUser?.email ?? "Welcome to Jihad Store"}</div>
+                                            <div className={styles.profileName}>{authUser?.name ?? t('header.guest_user')}</div>
+                                            <div className={styles.profileEmail}>{authUser?.email ?? t('header.welcome_store')}</div>
                                         </div>
                                     </div>
                                     <div className={styles.profileBody}>
                                         <div className={styles.navGroup}>
-                                            <div className={styles.groupLabel}>Account Settings</div>
+                                            <div className={styles.groupLabel}>{t('common.my_account')}</div>
                                             <nav className={styles.profileNav}>
                                                 <Link href="/myaccount/notifications" onClick={() => setProfileOpen(false)}>
                                                     <span className={styles.navIcon}>🔔</span>
-                                                    <span>Notifications</span>
-                                                    {unreadNotifs > 0 && <span className={styles.notifBadge}>{unreadNotifs}</span>}
+                                                    <span>{t('account.notifications')}</span>
+                                                    {unreadCount > 0 && <span className={styles.notifBadge}>{unreadCount}</span>}
                                                 </Link>
                                                 <Link href="/myaccount/my-orders" onClick={() => setProfileOpen(false)}>
                                                     <span className={styles.navIcon}>📦</span>
-                                                    <span>My Orders</span>
+                                                    <span>{t('account.my_orders')}</span>
                                                 </Link>
                                                 <Link href="/myaccount/wishlist" onClick={() => setProfileOpen(false)}>
                                                     <span className={styles.navIcon}>❤️</span>
-                                                    <span>Wishlist</span>
+                                                    <span>{t('nav.most_selling')}</span>
+                                                </Link>
+                                                <Link href="/myaccount/support" onClick={() => setProfileOpen(false)}>
+                                                    <span className={styles.navIcon}>💬</span>
+                                                    <span>{t('account.support_tickets')}</span>
+                                                    {supportUnread > 0 && <span className={styles.notifBadge}>{supportUnread}</span>}
                                                 </Link>
                                             </nav>
                                         </div>
                                         
                                         {(authUser?.role === "admin" || authUser?.role === "super_admin") && (
                                             <div className={styles.navGroup}>
-                                                <div className={styles.groupLabel}>Management</div>
+                                                <div className={styles.groupLabel}>{t('header.management')}</div>
                                                 <nav className={styles.profileNav}>
                                                     <Link href="/admin" onClick={() => setProfileOpen(false)}>
                                                         <span className={styles.navIcon}>🛠️</span>
-                                                        <span>Admin Panel</span>
+                                                        <span>{t('header.admin_panel')}</span>
                                                     </Link>
                                                 </nav>
                                             </div>
@@ -220,10 +248,9 @@ export function Header() {
                                             <button className={styles.signoutBtn} onClick={async () => {
                                                 await fetch("/api/auth/logout", { method: "POST" });
                                                 clearAuth(); setProfileOpen(false); router.push("/");
-                                                toast.success("Signed out successfully");
-                                            }}>Sign Out</button>
+                                            }}>{t('common.sign_out')}</button>
                                         ) : (
-                                            <Link href="/login" className="btn btnPrimary btnBlock btnSm" onClick={() => setProfileOpen(false)}>Login / Register</Link>
+                                            <Link href="/login" className="btn btnPrimary btnBlock btnSm" onClick={() => setProfileOpen(false)}>{t('header.login_register')}</Link>
                                         )}
                                     </div>
                                 </div>
@@ -256,8 +283,8 @@ export function Header() {
                                 <Link href="/login" className={styles.mobileGuestHero} onClick={closeAll}>
                                     <div className={styles.guestIcon}>✨</div>
                                     <div className={styles.guestMeta}>
-                                        <div className={styles.guestTitle}>Welcome to JHD LINE</div>
-                                        <div className={styles.guestSub}>Login to your boutique world</div>
+                                        <div className={styles.guestTitle}>{t('header.welcome_jhd')}</div>
+                                        <div className={styles.guestSub}>{t('header.login_world')}</div>
                                     </div>
                                 </Link>
                             )}
@@ -265,19 +292,27 @@ export function Header() {
 
                         <div className={styles.mobileBody}>
                             <div className={styles.drawerSection}>
-                                <div className={styles.sectionLabel}>The Collection</div>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+                                    <div className={styles.sectionLabel}>{t('nav.categories')}</div>
+                                    <button 
+                                        className={styles.mobileLangBtn} 
+                                        onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+                                    >
+                                        {lang === "ar" ? t('header.english') : t('header.arabic')}
+                                    </button>
+                                </div>
                                 <nav className={styles.mobilePrimaryNav}>
                                     <Link href="/" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>المتجر</span>
-                                        <span className={styles.navSub}>Browse Collection</span>
+                                        <span className={styles.navMain}>{t('nav.home')}</span>
+                                        <span className={styles.navSub}>{t('header.browse_collection')}</span>
                                     </Link>
                                     <Link href="/policy" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>سياسة الطلب</span>
-                                        <span className={styles.navSub}>Order Policies</span>
+                                        <span className={styles.navMain}>{t('nav.policy')}</span>
+                                        <span className={styles.navSub}>{t('header.order_policies')}</span>
                                     </Link>
                                     <Link href="/contact" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>تواصل معنا</span>
-                                        <span className={styles.navSub}>Contact & Support</span>
+                                        <span className={styles.navMain}>{t('nav.contact')}</span>
+                                        <span className={styles.navSub}>{t('header.contact_support')}</span>
                                     </Link>
                                 </nav>
                             </div>
@@ -285,24 +320,29 @@ export function Header() {
                             <div className={styles.mobileDivider} />
 
                             <div className={styles.drawerSection}>
-                                <div className={styles.sectionLabel}>My Boutique World</div>
+                                <div className={styles.sectionLabel}>{t('common.my_account')}</div>
                                 <nav className={styles.mobileDashboardNav}>
                                     <Link href="/myaccount/notifications" className={styles.dashboardLink} onClick={closeAll}>
                                         <span className={styles.dashboardIcon}>🔔</span>
-                                        <span className={styles.dashboardText}>Notifications</span>
-                                        {unreadNotifs > 0 && <span className={styles.notifBadgeSmall}>{unreadNotifs}</span>}
+                                        <span className={styles.dashboardText}>{t('account.notifications')}</span>
+                                        {unreadCount > 0 && <span className={styles.notifBadgeSmall}>{unreadCount}</span>}
                                     </Link>
                                     <Link href="/myaccount/my-orders" className={styles.dashboardLink} onClick={closeAll}>
                                         <span className={styles.dashboardIcon}>📦</span>
-                                        <span className={styles.dashboardText}>My Orders</span>
+                                        <span className={styles.dashboardText}>{t('account.my_orders')}</span>
                                     </Link>
                                     <Link href="/myaccount/wishlist" className={styles.dashboardLink} onClick={closeAll}>
                                         <span className={styles.dashboardIcon}>❤️</span>
-                                        <span className={styles.dashboardText}>Wishlist</span>
+                                        <span className={styles.dashboardText}>{t('nav.most_selling')}</span>
+                                    </Link>
+                                    <Link href="/myaccount/support" className={styles.dashboardLink} onClick={closeAll}>
+                                        <span className={styles.dashboardIcon}>💬</span>
+                                        <span className={styles.dashboardText}>{t('account.support_tickets')}</span>
+                                        {supportUnread > 0 && <span className={styles.notifBadgeSmall}>{supportUnread}</span>}
                                     </Link>
                                     <Link href="/cart" className={styles.dashboardLink} onClick={closeAll}>
                                         <span className={styles.dashboardIcon}>💼</span>
-                                        <span className={styles.dashboardText}>Shopping Cart</span>
+                                        <span className={styles.dashboardText}>{t('cart.bag')}</span>
                                         {cartCount > 0 && <span className={styles.notifBadgeSmall}>{cartCount}</span>}
                                     </Link>
                                 </nav>
@@ -312,11 +352,11 @@ export function Header() {
                                 <>
                                     <div className={styles.mobileDivider} />
                                     <div className={styles.drawerSection}>
-                                        <div className={styles.sectionLabel}>Management</div>
+                                        <div className={styles.sectionLabel}>{t('header.management')}</div>
                                         <nav className={styles.mobileDashboardNav}>
                                             <Link href="/admin" className={styles.dashboardLink} onClick={closeAll}>
                                                 <span className={styles.dashboardIcon}>🛠️</span>
-                                                <span className={styles.dashboardText}>Admin Panel</span>
+                                                <span className={styles.dashboardText}>{t('header.admin_panel')}</span>
                                             </Link>
                                         </nav>
                                     </div>
@@ -330,7 +370,7 @@ export function Header() {
                                     await fetch("/api/auth/logout", { method: "POST" }); 
                                     clearAuth(); closeAll(); router.push("/"); 
                                 }}>
-                                    <span>Sign Out of Boutique</span>
+                                    <span>{t('common.sign_out')}</span>
                                     <span className={styles.signoutArrow}>→</span>
                                 </button>
                             )}

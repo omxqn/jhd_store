@@ -17,7 +17,7 @@
 }
 
 .breadcrumb {
-    font-size: .75rem;
+    font-size: 1rem;
     color: var(--text-faint);
     margin-bottom: 2.5rem;
     display: flex;
@@ -150,7 +150,7 @@
 }
 
 .prodNum {
-    font-size: .65rem;
+    font-size: 1.1rem;
     color: var(--text-faint);
     font-weight: 700;
     letter-spacing: .15em;
@@ -159,10 +159,16 @@
 
 .prodName {
     font-family: var(--ff-serif);
-    font-size: clamp(2.25rem, 4vw, 3.25rem);
+    font-size: clamp(3rem, 5vw, 4rem);
     line-height: 1.1;
     color: var(--secondary);
     font-weight: 500;
+}
+
+.headerRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .priceRow {
@@ -172,7 +178,7 @@
 }
 
 .priceCurrent {
-    font-size: 2.25rem;
+    font-size: 3rem;
     font-weight: 600;
     color: var(--secondary);
 }
@@ -197,7 +203,7 @@
     gap: .5rem;
     padding: .4rem .9rem;
     border-radius: 4px;
-    font-size: .7rem;
+    font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .05em;
@@ -226,7 +232,7 @@
 }
 
 .shippingNote {
-    font-size: .8rem;
+    font-size: 1rem;
     color: var(--text-muted);
     display: flex;
     align-items: center;
@@ -247,7 +253,7 @@
 }
 
 .optLabel {
-    font-size: .7rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--secondary);
     letter-spacing: .1em;
@@ -266,7 +272,7 @@
     background: none;
     border: none;
     padding: 0;
-    font-size: .7rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--secondary);
     cursor: pointer;
@@ -325,7 +331,7 @@
 }
 
 .necklineOption span {
-    font-size: .65rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--secondary);
     display: block;
@@ -349,7 +355,7 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
-    font-size: .85rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-muted);
     transition: all 200ms ease;
@@ -381,7 +387,7 @@
 
 .stitchNote {
     grid-column: 1/-1;
-    font-size: .85rem;
+    font-size: 1.1rem;
     color: var(--secondary);
     background: #FFFFFF;
     border-radius: 8px;
@@ -405,7 +411,7 @@
     border: 1px solid var(--border);
     border-radius: 9999px;
     cursor: pointer;
-    font-size: .75rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--text-muted);
     transition: all 200ms ease;
@@ -425,13 +431,13 @@
 }
 
 .accPrice {
-    font-size: .7rem;
+    font-size: 1rem;
     font-weight: 700;
     opacity: 0.8;
 }
 
 .totalBreakdown {
-    font-size: .7rem;
+    font-size: 1rem;
     color: var(--text-faint);
     margin-top: 4px;
     font-weight: 500;
@@ -475,7 +481,7 @@
     background: transparent;
     border: none;
     color: var(--secondary);
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     cursor: pointer;
     transition: all 200ms ease;
     display: flex;
@@ -491,7 +497,7 @@
     width: 60px;
     text-align: center;
     font-weight: 700;
-    font-size: 1.125rem;
+    font-size: 1.5rem;
     color: var(--secondary);
 }
 
@@ -500,7 +506,7 @@
 }
 
 .totalLabel {
-    font-size: .65rem;
+    font-size: 1.1rem;
     color: var(--text-faint);
     text-transform: uppercase;
     letter-spacing: .1em;
@@ -509,13 +515,13 @@
 
 .totalAmount {
     font-family: var(--ff-serif);
-    font-size: 2.25rem;
+    font-size: 3rem;
     font-weight: 500;
     color: var(--secondary);
 }
 
 .totalNote {
-    font-size: .7rem;
+    font-size: 1.1rem;
     color: var(--text-faint);
     margin-top: 4px;
 }
@@ -562,7 +568,7 @@
 
 .tab {
     padding-bottom: 1.25rem;
-    font-size: .85rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-faint);
     cursor: pointer;
@@ -597,7 +603,7 @@
 .descText {
     color: var(--text-muted);
     line-height: 2;
-    font-size: 1rem;
+    font-size: 1.25rem;
     max-width: 800px;
     font-weight: 300;
 }
@@ -611,7 +617,7 @@
 .specTable td {
     padding: 1.25rem 0;
     border-bottom: 1px solid var(--border-soft);
-    font-size: .9rem;
+    font-size: 1.2rem;
 }
 
 @media (max-width: 640px) {

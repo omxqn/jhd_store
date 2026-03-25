@@ -49,7 +49,7 @@ export default function SignupPage() {
 
             // If user was just created, update their name if it was just a fallback
             setAuthUser(data.user);
-            toast.success("Welcome to the Boutique! Your account is ready.");
+            toast.success("Welcome to the Store! Your account is ready.");
             router.push("/myaccount");
         } catch (err) {
             toast.error("Network error");
@@ -61,7 +61,7 @@ export default function SignupPage() {
             <div className={styles.authCard}>
                 <div className={styles.header}>
                     <div className={styles.icon}>✧</div>
-                    <h1 className={styles.title}>Join the Boutique</h1>
+                    <h1 className={styles.title}>Join the Store</h1>
                     <p className={styles.subtitle}>
                         {step === "details"
                             ? "Create your Jihad Store account for a bespoke experience"
@@ -85,10 +85,10 @@ export default function SignupPage() {
                             </div>
                             <div className="formGroup">
                                 <label className="formLabel">Electronic Mail</label>
-                                <input className="formInput" type="email" placeholder="name@boutique.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                                <input className="formInput" type="email" placeholder="name@store.com" value={email} onChange={e => setEmail(e.target.value)} required />
                             </div>
                             <button type="submit" className="btn btnPrimary btnBlock" style={{ marginTop: "1rem" }} disabled={loading}>
-                                {loading ? "Communicating with Boutique…" : "Register & Send Code ○"}
+                                {loading ? "Communicating with Store…" : "Register & Send Code ○"}
                             </button>
                         </motion.form>
                     ) : (

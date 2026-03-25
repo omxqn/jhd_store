@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ProductCard } from "@/components/ProductCard";
 import styles from "./page.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 type SortKey = "cheapest" | "expensive" | "selling" | "rating";
 
@@ -79,9 +80,10 @@ function ProductCarousel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PromotionalRow({ title, badge, filter }: { title: string; badge: string; filter: string }) {
+function PromotionalRow({ titleKey, badgeKey, filter }: { titleKey: string; badgeKey: string; filter: string }) {
   const [products, setProducts] = useState<any[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetch(`/api/products?${filter}=1`)
@@ -99,8 +101,8 @@ function PromotionalRow({ title, badge, filter }: { title: string; badge: string
     <section className={styles.section}>
       <div className="container">
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionBadge}>{badge}</span>
-          <h2 className={styles.sectionTitle}>{title}</h2>
+          <span className={styles.sectionBadge}>{t(badgeKey)}</span>
+          <h2 className={styles.sectionTitle}>{t(titleKey)}</h2>
         </div>
         <ProductCarousel>
           {products.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -110,13 +112,14 @@ function PromotionalRow({ title, badge, filter }: { title: string; badge: string
   );
 }
 
-function CategoryRow({ category }: { category: string }) {
+function CategoryRow({ category }: { category: any }) {
   const [sort, setSort] = useState<SortKey>("selling");
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const { lang, t, isRTL } = useLanguage();
 
   useEffect(() => {
-    fetch(`/api/products?category=${encodeURIComponent(category)}`)
+    fetch(`/api/products?category=${encodeURIComponent(category.name)}`)
       .then(r => r.json())
       .then(d => {
         setAllProducts((d.products || []).map(normalizeProduct));
@@ -138,16 +141,16 @@ function CategoryRow({ category }: { category: string }) {
     <section className={styles.categorySection}>
       <div className={styles.categoryHeader}>
         <div className={styles.categoryLeft}>
-          <span className={styles.categoryBadge}>الأصناف</span>
-          <h2 className={styles.categoryName}>{category}</h2>
+          <span className={styles.categoryBadge}>{t('nav.categories')}</span>
+          <h2 className={styles.categoryName}>{lang === 'ar' ? category.name_ar || category.name : category.name}</h2>
         </div>
         <div className={styles.categoryRight}>
           <div className={styles.sortPills}>
-            {([["selling", "🔥 الأكثر مبيعاً"], ["cheapest", "💰 الأقل سعراً"], ["expensive", "📈 الأعلى سعراً"], ["rating", "⭐ الأعلى تقييماً"]] as [SortKey, string][]).map(([k, l]) => (
+            {([[ "selling", `🔥 ${t('nav.most_selling')}`], ["cheapest", "💰 Low Price"], ["expensive", "📈 High Price"], ["rating", "⭐ Top Rated"]] as [SortKey, string][]).map(([k, l]) => (
               <button key={k} className={`${styles.sortPill} ${sort === k ? styles.active : ""}`} onClick={() => setSort(k)}>{l}</button>
             ))}
           </div>
-          <a href={`/category/${category.toLowerCase()}`} className={styles.viewAll}>مشاهدة الكل ←</a>
+          <a href={`/category/${category.name.toLowerCase()}`} className={styles.viewAll}>{t('common.view_all')} {isRTL ? "←" : "→"}</a>
         </div>
       </div>
       <ProductCarousel>
@@ -163,8 +166,9 @@ function CategoryRow({ category }: { category: string }) {
 
 
 export default function HomePage() {
-  const [productCategories, setProductCategories] = useState<string[]>([]);
-  const [visualCategories, setVisualCategories] = useState<{ name: string; image_url: string }[]>([]);
+  const [productCategories, setProductCategories] = useState<any[]>([]);
+  const [visualCategories, setVisualCategories] = useState<{ name: string; name_ar?: string; image_url: string }[]>([]);
+  const { lang, t, isRTL } = useLanguage();
 
   useEffect(() => {
     fetch("/api/categories")
@@ -172,7 +176,7 @@ export default function HomePage() {
       .then(d => {
         const cats: any[] = d.categories || [];
         setVisualCategories(cats.filter((c: any) => c.image_url));
-        setProductCategories(cats.map((c: any) => c.name));
+        setProductCategories(cats);
       })
       .catch(() => { });
   }, []);
@@ -195,7 +199,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            مرحباً بك في عالم جهاد!
+            {t('home.welcome_title')}
           </motion.h1>
           <motion.p
             className={styles.welcomeBlue}
@@ -204,7 +208,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
           >
-            من الرسم إلى التطريز، نبدع بشغف لنضع الإبداع في كل تصميم. نحرص على أن يحمل بصمتكم الخاصة، وأن يعكس جمال التفاصيل ودقة التنفيذ.
+            {t('home.welcome_desc')}
           </motion.p>
         </div>
       </motion.section>
@@ -212,10 +216,7 @@ export default function HomePage() {
       {/* ── SERVICES MARQUEE ── */}
       <section className={styles.marqueeSection}>
         <div className={styles.marqueeTrack}>
-          {Array(4).fill([
-            "تفصيل ثياب", "أرقى العبايات", "طرح احترافية",
-            "هدايا وورد", "شوكولاتة", "سبح وكهرمان", "عطور فاخرة"
-          ]).flat().map((item, i) => (
+          {Array(4).fill(t('home.marquee')).flat().map((item: any, i: number) => (
             <div key={i} className={styles.marqueeItem}>
               {item}
               <span className={styles.marqueeDot}></span>
@@ -242,7 +243,7 @@ export default function HomePage() {
                 <div className={styles.visualCategoryImgWrap}>
                   <img src={c.image_url} alt={c.name} className={styles.visualCategoryImg} />
                 </div>
-                <div className={styles.visualCategoryTitle}>{c.name}</div>
+                <div className={styles.visualCategoryTitle}>{lang === 'ar' ? c.name_ar || c.name : c.name}</div>
               </motion.a>
             ))}
           </div>
@@ -253,23 +254,23 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ delay: 1 }}
           >
-            <span className={styles.indicatorArrow}>←</span>
-            <span>اسحب بالتمرير</span>
-            <span className={styles.indicatorArrow}>→</span>
+            <span className={styles.indicatorArrow}>{isRTL ? "→" : "←"}</span>
+            <span>{t('home.scroll_to_explore')}</span>
+            <span className={styles.indicatorArrow}>{isRTL ? "←" : "→"}</span>
           </motion.div>
         </div>
       </section>
 
       {/* ── PROMOTIONAL ROWS ── */}
-      <PromotionalRow title="عرض خاص" badge="إصدار محدود" filter="limited" />
-      <PromotionalRow title="الاحدث" badge="وصلنا حديثاً" filter="new" />
-      <PromotionalRow title="الأكثر مبيعاً" badge="مختاراتنا" filter="featured" />
-      <PromotionalRow title="تخفيضات" badge="وفر الآن" filter="discounted" />
+      <PromotionalRow titleKey="home.featured" badgeKey="product.trending" filter="limited" />
+      <PromotionalRow titleKey="nav.new_arrivals" badgeKey="nav.new_arrivals" filter="new" />
+      <PromotionalRow titleKey="nav.most_selling" badgeKey="home.our_picks" filter="featured" />
+      <PromotionalRow titleKey="home.trending" badgeKey="home.hero_title" filter="discounted" />
 
       {/* ── CATEGORIES ── */}
       <div className="container">
         {productCategories.map(cat => (
-          <CategoryRow key={cat} category={cat} />
+          <CategoryRow key={cat.id} category={cat} />
         ))}
       </div>
     </div>

@@ -5,10 +5,12 @@ import { COUNTRIES } from "@/lib/data";
 import toast from "react-hot-toast";
 
 import styles from "../admin.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 const omr = COUNTRIES[0];
 
 export default function AdminVouchersPage() {
+    const { lang, t, isRTL } = useLanguage();
     const [vouchers, setVouchers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +55,7 @@ export default function AdminVouchersPage() {
             }),
         });
         if (res.ok) {
-            toast.success("Voucher created successfully ○");
+            toast.success(lang === 'ar' ? "تم إنشاء القسيمة بنجاح ○" : "Voucher created successfully ○");
             setNewVoucher({
                 code: "",
                 discount_amount: "",
@@ -66,7 +68,7 @@ export default function AdminVouchersPage() {
             setIsModalOpen(false);
             load();
         }
-        else toast.error("Failed to create voucher");
+        else toast.error(lang === 'ar' ? "فشل إنشاء القسيمة" : "Failed to create voucher");
     };
 
     const deactivate = async (code: string) => {
@@ -75,19 +77,19 @@ export default function AdminVouchersPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ code }),
         });
-        toast.success("Voucher deactivated");
+        toast.success(lang === 'ar' ? "تم إبطال القسيمة" : "Voucher deactivated");
         load();
     };
 
     return (
         <div>
-            <div className={styles.pageHeader}>
+            <div className={styles.pageHeader} style={{ textAlign: isRTL ? 'right' : 'left', flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                 <div>
-                    <h1 className={styles.pageTitle}>Vouchers <span>System</span></h1>
-                    <p style={{ color: "var(--admin-text-muted)", fontSize: ".875rem" }}>{vouchers.length} total active campaigns</p>
+                    <h1 className={styles.pageTitle}>{lang === 'ar' ? "نظام " : "Vouchers "} <span>{lang === 'ar' ? "القسائم" : "System"}</span></h1>
+                    <p style={{ color: "var(--admin-text-muted)", fontSize: "1.56rem" }}>{vouchers.length} {lang === 'ar' ? "إجمالي الحملات النشطة المتتبعة" : "active campaigns tracked total"}</p>
                 </div>
-                <button onClick={() => { generateRandomCode(); setIsModalOpen(true); }} className={styles.adminBtn}>
-                    ✨ Issue New Voucher
+                <button onClick={() => { generateRandomCode(); setIsModalOpen(true); }} className={styles.adminBtn} style={{ fontSize: "1.5rem", padding: "1.255rem 2.5rem" }}>
+                    ✨ {lang === 'ar' ? "إصدار قسيمة جديدة" : "Issue New Voucher"}
                 </button>
             </div>
 
@@ -95,15 +97,23 @@ export default function AdminVouchersPage() {
             <div className={styles.tableWrapper}>
                 <table className={styles.table}>
                     <thead>
-                        <tr>
-                            {["Code", "Value", "Type", "Target", "Usage", "Expires", "Action"].map(h => (
-                                <th key={h} style={{ whiteSpace: "nowrap" }}>{h}</th>
+                        <tr style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                            {[
+                                lang === 'ar' ? "الكود" : "Code",
+                                lang === 'ar' ? "القيمة" : "Value",
+                                lang === 'ar' ? "النوع" : "Type",
+                                lang === 'ar' ? "المستهدف" : "Target",
+                                lang === 'ar' ? "الاستخدام" : "Usage",
+                                lang === 'ar' ? "تنتهي" : "Expires",
+                                lang === 'ar' ? "الإجراء" : "Action"
+                            ].map(h => (
+                                <th key={h} style={{ whiteSpace: "nowrap", textAlign: isRTL ? 'right' : 'left' }}>{h}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "var(--admin-text-muted)" }}>Loading directory…</td></tr>
+                            <tr><td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "var(--admin-text-muted)" }}>{t('common.loading')}</td></tr>
                         ) : vouchers.map(v => {
                             const isExpired = v.expires_at && new Date(v.expires_at) < new Date();
                             const isExhausted = !v.is_public && v.use_count >= 1;
@@ -112,39 +122,39 @@ export default function AdminVouchersPage() {
                             return (
                                 <Fragment key={v.code}>
                                     <tr>
-                                        <td style={{ fontWeight: 800, letterSpacing: ".05em", color: "var(--admin-primary)", fontFamily: "monospace" }}>{v.code}</td>
-                                        <td style={{ fontWeight: 700 }}>{v.discount_type === 'percentage' ? `${v.discount_amount}%` : formatPrice(v.discount_amount, omr)}</td>
-                                        <td style={{ textTransform: "capitalize", fontSize: "0.8rem", color: "var(--admin-text-muted)" }}>{v.discount_type}</td>
+                                        <td style={{ fontWeight: 800, letterSpacing: "2px", color: "var(--admin-primary)", fontFamily: "monospace", fontSize: "1.3rem" }}>{v.code}</td>
+                                        <td style={{ fontWeight: 800, fontSize: "1.4rem" }}>{v.discount_type === 'percentage' ? `${v.discount_amount}%` : formatPrice(v.discount_amount, omr)}</td>
+                                        <td style={{ textTransform: "capitalize", fontSize: "1.25rem", color: "var(--admin-text-muted)", fontWeight: 600 }}>{v.discount_type === 'fixed' ? (lang === 'ar' ? "ثابت" : "Fixed") : (lang === 'ar' ? "نسبة" : "Percentage")}</td>
                                         <td>
-                                            <span style={{ fontSize: ".75rem", color: v.new_user_only ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                                                {v.new_user_only ? "👤 New Users" : "🛡️ Everyone"}
+                                            <span style={{ fontSize: "1.2rem", fontWeight: 700, color: v.new_user_only ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
+                                                {v.new_user_only ? (lang === 'ar' ? "👤 عملاء جدد" : "👤 New Users") : (lang === 'ar' ? "🛡️ الجميع" : "🛡️ Everyone")}
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{ fontSize: ".75rem", fontWeight: 700 }}>
-                                                {v.use_count} Uses
+                                            <div style={{ fontSize: "1.2rem", fontWeight: 700 }}>
+                                                {v.use_count} {lang === 'ar' ? "استخدامات" : "Uses"}
                                             </div>
-                                            <div style={{ fontSize: ".65rem", color: "var(--admin-text-muted)" }}>
-                                                {v.is_public ? `Limit: ${v.max_uses_per_user ?? 1}x/User` : "Single Use Total"}
+                                            <div style={{ fontSize: "1rem", color: "var(--admin-text-muted)", fontWeight: 600 }}>
+                                                {v.is_public ? (lang === 'ar' ? `الحد: ${v.max_uses_per_user ?? 1}x/للمستخدم` : `Limit: ${v.max_uses_per_user ?? 1}x/User`) : (lang === 'ar' ? "استخدام واحد فقط" : "Single Use Total")}
                                             </div>
                                         </td>
-                                        <td style={{ color: isExpired ? "#ef4444" : "var(--admin-text-muted)", fontSize: ".8rem" }}>
-                                            {isExpired ? "🔴 Expired" : (isExhausted ? "🔴 Used" : (v.expires_at ? new Date(v.expires_at).toLocaleDateString() : "No Expiry"))}
+                                        <td style={{ color: isExpired ? "#ef4444" : "var(--admin-text-muted)", fontSize: "1.25rem", fontWeight: 600 }}>
+                                            {isExpired ? (lang === 'ar' ? "🔴 منتهي" : "🔴 Expired") : (isExhausted ? (lang === 'ar' ? "🔴 مستخدم" : "🔴 Used") : (v.expires_at ? new Date(v.expires_at).toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-GB") : (lang === 'ar' ? "بدون انتهاء" : "No Expiry")))}
                                         </td>
                                         <td>
-                                            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                                            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                                                 {v.active && !isExpired && !isExhausted ? (
-                                                    <button onClick={() => deactivate(v.code)} style={{ padding: ".35rem .75rem", borderRadius: ".5rem", background: "rgba(239,68,68,.1)", color: "#ef4444", fontSize: ".75rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
-                                                        Deactivate
+                                                    <button onClick={() => deactivate(v.code)} style={{ padding: ".75rem 1.25rem", borderRadius: "10px", background: "rgba(239,68,68,.1)", color: "#ef4444", fontSize: "1.2rem", fontWeight: 700, cursor: "pointer", border: "none" }}>
+                                                        {lang === 'ar' ? "إبطال" : "Deactivate"}
                                                     </button>
-                                                ) : <span style={{ color: "var(--admin-text-muted)", fontSize: ".75rem" }}>Inactive</span>}
+                                                ) : <span style={{ color: "var(--admin-text-muted)", fontSize: "1.2rem", fontWeight: 700 }}>{lang === 'ar' ? "غير نشط" : "Inactive"}</span>}
 
                                                 {v.redemptions?.length > 0 && (
                                                     <button
                                                         onClick={() => setExpandedRows(prev => ({ ...prev, [v.code]: !prev[v.code] }))}
-                                                        style={{ background: "none", border: "none", color: "var(--admin-primary)", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}
+                                                        style={{ background: "none", border: "none", color: "var(--admin-primary)", cursor: "pointer", fontSize: "1.25rem", fontWeight: 700, whiteSpace: "nowrap" }}
                                                     >
-                                                        {isExpanded ? "Hide Logs ↑" : "View Logs ↓"}
+                                                        {isExpanded ? (lang === 'ar' ? "إخفاء السجلات ↑" : "Hide Logs ↑") : (lang === 'ar' ? "عرض السجلات ↓" : "View Logs ↓")}
                                                     </button>
                                                 )}
                                             </div>
@@ -152,17 +162,17 @@ export default function AdminVouchersPage() {
                                     </tr>
                                     {isExpanded && v.redemptions && (
                                         <tr>
-                                            <td colSpan={7} style={{ background: "rgba(0,0,0,0.02)", padding: "1rem" }}>
-                                                <div style={{ fontSize: "0.75rem" }}>
-                                                    <div style={{ fontWeight: 700, marginBottom: "0.5rem", color: "var(--admin-primary)" }}>Redemption History (Last 50)</div>
-                                                    <div style={{ display: "grid", gap: "0.5rem" }}>
+                                            <td colSpan={7} style={{ background: "rgba(0,0,0,0.02)", padding: "1.5rem", textAlign: isRTL ? 'right' : 'left' }}>
+                                                <div style={{ fontSize: "1.25rem" }}>
+                                                    <div style={{ fontWeight: 800, marginBottom: "1rem", color: "var(--admin-primary)", fontSize: "1.4rem" }}>{lang === 'ar' ? "سجل الاستخدام (آخر 50)" : "Redemption History (Last 50)"}</div>
+                                                    <div style={{ display: "grid", gap: "1rem" }}>
                                                         {v.redemptions.map((r: any, idx: number) => (
-                                                            <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem", background: "white", borderRadius: "0.5rem", border: "1px solid var(--admin-border)" }}>
-                                                                <div>
-                                                                    <strong>Order #{r.order_id}</strong> - {r.customer_name} ({r.customer_email})
+                                                            <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "1.25rem", background: "white", borderRadius: "12px", border: "1px solid var(--admin-border)", alignItems: "center", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                                                                <div style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                                                                    <strong style={{ fontSize: "1.4rem" }}>{lang === 'ar' ? "طلب #" : "Order #"} {r.order_id}</strong> — {r.customer_name} ({r.customer_email})
                                                                 </div>
-                                                                <div style={{ color: "var(--admin-text-muted)" }}>
-                                                                    {new Date(r.redeemed_at).toLocaleString()}
+                                                                <div style={{ color: "var(--admin-text-muted)", fontWeight: 600 }}>
+                                                                    {new Date(r.redeemed_at).toLocaleString(lang === 'ar' ? "ar-SA" : "en-GB")}
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -181,99 +191,100 @@ export default function AdminVouchersPage() {
             {/* Voucher Creation Modal */}
             {isModalOpen && (
                 <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent} style={{ maxWidth: "600px" }}>
-                        <div className={styles.modalHeader}>
-                            <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>Configure Boutique Voucher</h2>
-                            <button onClick={() => setIsModalOpen(false)} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer" }}>×</button>
+                        <div className={styles.modalContent} style={{ maxWidth: "800px", textAlign: isRTL ? 'right' : 'left' }}>
+                        <div className={styles.modalHeader} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                            <h2 style={{ fontSize: "2.25rem", fontWeight: 700 }}>{lang === 'ar' ? "إصدار " : "Issue "} <span style={{ color: "var(--admin-primary)" }}>{lang === 'ar' ? "قسيمة" : "Voucher"}</span></h2>
+                            <button onClick={() => setIsModalOpen(false)} style={{ background: "none", border: "none", fontSize: "3rem", cursor: "pointer", color: "var(--admin-text-muted)" }}>×</button>
                         </div>
                         <form onSubmit={create}>
                             <div className={styles.modalBody}>
                                 <div className={styles.formSection}>
                                     <div className={styles.formGrid}>
                                         <div className="formGroup" style={{ gridColumn: "span 2" }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: ".5rem" }}>
-                                                <label className="formLabel" style={{ margin: 0 }}>Voucher Code</label>
-                                                <button type="button" onClick={generateRandomCode} style={{ color: "var(--admin-primary)", background: "none", border: "none", fontSize: ".7rem", fontWeight: 700, cursor: "pointer" }}>
-                                                    RE-GENERATE ↻
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "0.75rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                                                <label className="formLabel" style={{ margin: 0, fontSize: "1.4rem" }}>{lang === 'ar' ? "كود القسيمة" : "Voucher Code"}</label>
+                                                <button type="button" onClick={generateRandomCode} style={{ color: "var(--admin-primary)", background: "none", border: "none", fontSize: "1.2rem", fontWeight: 800, cursor: "pointer" }}>
+                                                    {lang === 'ar' ? "إعادة توليد ↻" : "RE-GENERATE ↻"}
                                                 </button>
                                             </div>
                                             <input
                                                 className={styles.adminInput}
-                                                style={{ fontFamily: "monospace", letterSpacing: "2px", fontWeight: 700 }}
+                                                style={{ fontFamily: "monospace", letterSpacing: "4px", fontWeight: 800, fontSize: "2rem", textAlign: "center", padding: "1.25rem" }}
                                                 value={newVoucher.code}
                                                 onChange={e => setNewVoucher({ ...newVoucher, code: e.target.value.toUpperCase() })}
                                             />
                                         </div>
 
                                         <div className="formGroup">
-                                            <label className="formLabel">Discount Type</label>
-                                            <select className={styles.adminInput} value={newVoucher.discount_type} onChange={e => setNewVoucher({ ...newVoucher, discount_type: e.target.value })}>
-                                                <option value="fixed">Fixed (OMR)</option>
-                                                <option value="percentage">Percentage (%)</option>
+                                            <label className="formLabel">{lang === 'ar' ? "نوع الخصم" : "Discount Type"}</label>
+                                            <select className={styles.adminInput} value={newVoucher.discount_type} onChange={e => setNewVoucher({ ...newVoucher, discount_type: e.target.value })} style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                                                <option value="fixed">{lang === 'ar' ? "ثابت (ر.ع)" : "Fixed (OMR)"}</option>
+                                                <option value="percentage">{lang === 'ar' ? "نسبة (%)" : "Percentage (%)"}</option>
                                             </select>
                                         </div>
                                         <div className="formGroup">
-                                            <label className="formLabel">Amount</label>
-                                            <input className={styles.adminInput} type="number" step="0.001" value={newVoucher.discount_amount} onChange={e => setNewVoucher({ ...newVoucher, discount_amount: e.target.value })} />
+                                            <label className="formLabel">{lang === 'ar' ? "المبلغ" : "Amount"}</label>
+                                            <input className={styles.adminInput} type="number" step="0.001" value={newVoucher.discount_amount} onChange={e => setNewVoucher({ ...newVoucher, discount_amount: e.target.value })} style={{ textAlign: isRTL ? 'right' : 'left' }} />
                                         </div>
 
                                         <div className="formGroup" style={{ gridColumn: "span 2" }}>
-                                            <label className="formLabel">Expiration Date (Optional)</label>
-                                            <input className={styles.adminInput} type="datetime-local" value={newVoucher.expires_at} onChange={e => setNewVoucher({ ...newVoucher, expires_at: e.target.value })} />
+                                            <label className="formLabel">{lang === 'ar' ? "تاريخ الانتهاء (اختياري)" : "Expiration Date (Optional)"}</label>
+                                            <input className={styles.adminInput} type="datetime-local" value={newVoucher.expires_at} onChange={e => setNewVoucher({ ...newVoucher, expires_at: e.target.value })} style={{ textAlign: isRTL ? 'right' : 'left' }} />
                                         </div>
 
                                         <div className="formGroup" style={{ gridColumn: "span 2" }}>
-                                            <label className="formLabel">Max Uses Per User</label>
+                                            <label className="formLabel" style={{ fontSize: "1.4rem" }}>{lang === 'ar' ? "أقصى عدد مرات استخدام للمستخدم" : "Max Redemptions Per User"}</label>
                                             <input
                                                 className={styles.adminInput}
                                                 type="number"
                                                 min="1"
                                                 value={newVoucher.max_uses_per_user}
                                                 onChange={e => setNewVoucher({ ...newVoucher, max_uses_per_user: e.target.value })}
+                                                style={{ fontSize: "1.5rem", textAlign: isRTL ? 'right' : 'left' }}
                                             />
-                                            <div style={{ fontSize: ".7rem", color: "var(--admin-text-muted)", marginTop: "0.3rem" }}>Times each user can redeem this voucher (public vouchers only)</div>
+                                            <div style={{ fontSize: "1.1rem", color: "var(--admin-text-muted)", marginTop: "0.5rem", fontWeight: 600 }}>{lang === 'ar' ? "إجمالي عدد المرات التي يمكن لكل مستخدم استرداد هذه القسيمة فيها." : "Total times each user can redeem this voucher."}</div>
                                         </div>
 
-                                        <div style={{ gridColumn: "span 2", padding: "1rem", background: "rgba(0,0,0,0.02)", borderRadius: ".75rem", display: "grid", gap: "1rem" }}>
-                                            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", fontSize: ".9rem" }}>
+                                        <div style={{ gridColumn: "span 2", padding: "1.5rem", background: "rgba(0,0,0,0.02)", borderRadius: "1rem", display: "grid", gap: "1.5rem", border: "1px solid var(--admin-border)" }}>
+                                            <label style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", fontSize: "1.3rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                                                 <input
                                                     type="checkbox"
                                                     checked={newVoucher.new_user_only}
                                                     onChange={e => setNewVoucher({ ...newVoucher, new_user_only: e.target.checked })}
-                                                    style={{ width: "18px", height: "18px", accentColor: "var(--admin-primary)" }}
+                                                    style={{ width: "24px", height: "24px", accentColor: "var(--admin-primary)" }}
                                                 />
-                                                <div>
-                                                    <div style={{ fontWeight: 600 }}>New Customers Only</div>
-                                                    <div style={{ fontSize: ".75rem", color: "var(--admin-text-muted)" }}>Restrict to users with zero previous orders.</div>
+                                                <div style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                                                    <div style={{ fontWeight: 800 }}>{lang === 'ar' ? "للعملاء الجدد فقط" : "New Customers Only"}</div>
+                                                    <div style={{ fontSize: "1.1rem", color: "var(--admin-text-muted)", fontWeight: 600 }}>{lang === 'ar' ? "قصر الاسترداد على المستخدمين الذين ليس لديهم طلبات سابقة." : "Restrict redemption to users with zero previous orders."}</div>
                                                 </div>
                                             </label>
 
-                                            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", fontSize: ".9rem" }}>
+                                            <label style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", fontSize: "1.3rem", flexDirection: isRTL ? 'row-reverse' : 'row' }}>
                                                 <input
                                                     type="checkbox"
                                                     checked={newVoucher.is_public}
                                                     onChange={e => setNewVoucher({ ...newVoucher, is_public: e.target.checked })}
-                                                    style={{ width: "18px", height: "18px", accentColor: "var(--admin-primary)" }}
+                                                    style={{ width: "24px", height: "24px", accentColor: "var(--admin-primary)" }}
                                                 />
-                                                <div>
-                                                    <div style={{ fontWeight: 600 }}>Public / Multi-user</div>
-                                                    <div style={{ fontSize: ".75rem", color: "var(--admin-text-muted)" }}>Checked: 1 usage per user. Unchecked: 1 usage total across store.</div>
+                                                <div style={{ textAlign: isRTL ? 'right' : 'left' }}>
+                                                    <div style={{ fontWeight: 800 }}>{lang === 'ar' ? "عام / متعدد المستخدمين" : "Public / Multi-user"}</div>
+                                                    <div style={{ fontSize: "1.1rem", color: "var(--admin-text-muted)", fontWeight: 600 }}>{lang === 'ar' ? "مفعل: استخدام واحد لكل مستخدم. غير مفعل: استخدام واحد إجمالي لجميع المتجر." : "Checked: 1 usage per user. Unchecked: Single-use total across store."}</div>
                                                 </div>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className={styles.modalFooter}>
-                                <button type="button" onClick={() => setIsModalOpen(false)} className={styles.adminBtnSecondary} style={{ padding: "0.75rem 1.5rem" }}>
-                                    Cancel
+                            <div className={styles.modalFooter} style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}>
+                                <button type="button" onClick={() => setIsModalOpen(false)} className={styles.adminBtnSecondary} style={{ padding: "1.25rem 2.5rem", fontSize: "1.4rem", borderRadius: "12px" }}>
+                                    {lang === 'ar' ? "إلغاء وتجاهل" : "Discard"}
                                 </button>
                                 <button
                                     type="submit"
                                     className={styles.adminBtn}
-                                    style={{ padding: "0.75rem 2rem" }}
+                                    style={{ padding: "1.25rem 3rem", fontSize: "1.4rem" }}
                                 >
-                                    Issue Voucher ○
+                                    {lang === 'ar' ? "إصدار قسيمة ○" : "Issue Voucher ○"}
                                 </button>
                             </div>
                         </form>

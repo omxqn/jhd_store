@@ -259,6 +259,67 @@ export async function sendOrderStatusUpdateEmail(data: OrderEmailData) {
     });
 }
 
+export async function sendTicketReplyEmail({ ticketId, customerName, customerEmail, subject, replyMessage }: { ticketId: string | number, customerName: string, customerEmail: string, subject: string, replyMessage: string }) {
+    if (!process.env.SMTP_USER) return;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="margin: 0; padding: 0; background-color: #fdf5ce; font-family: Tahoma, Arial, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdf5ce; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; max-width: 600px; width: 100%;">
+                <tr>
+                    <td align="center">
+                        <img src="cid:jhd-header" alt="JHD Line Banner" width="100%" style="display: block; max-width: 100%; height: auto; border: 0;">
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 30px; text-align: right;">
+                        <h2 style="color: #172370; margin-top: 0;">تحديث تذكرة الدعم #${ticketId}</h2>
+                        <p style="color: #333; font-size: 16px;">أهلاً ${customerName}،</p>
+                        <p style="color: #555; font-size: 15px;">قام فريق الدعم بالرد على تذكرتك المتعلقة بـ <strong>"${subject}"</strong>:</p>
+                        
+                        <div style="background-color: #f8f9fa; border-right: 4px solid #b83424; padding: 15px; margin: 20px 0; color: #333; font-size: 14px; white-space: pre-wrap;">${replyMessage}</div>
+                        
+                        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://jhd-line.com'}/myaccount/support/${ticketId}" 
+                           style="display: inline-block; padding: 12px 30px; background-color: #172370; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                           مشاهدة التذكرة كاملة
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+    `;
+
+    await transporter.sendMail({
+        from: `"JHD.LINE Support" <${process.env.SMTP_USER}>`,
+        to: customerEmail,
+        subject: `تحديث التذكرة #${ticketId} - ${subject}`,
+        html,
+        attachments: emailAttachments,
+    });
+}
+
+export async function sendAdminTicketAlert(adminEmail: string, { ticketId, customerName, subject }: { ticketId: string | number, customerName: string, subject: string }) {
+    if (!process.env.SMTP_USER) return;
+    const html = `<p>New support ticket #${ticketId} opened by ${customerName}. Subject: ${subject}</p>`;
+    await transporter.sendMail({
+        from: `"System Alert" <${process.env.SMTP_USER}>`,
+        to: adminEmail,
+        subject: `[ADMIN] New Ticket #${ticketId} from ${customerName}`,
+        html,
+    });
+}
+
 export async function sendAdminOrderAlert(data: OrderEmailData, adminEmail: string) {
     if (!process.env.SMTP_USER) return;
 

@@ -4,25 +4,27 @@ import Link from "next/link";
 import { useStore, formatPrice } from "@/lib/store";
 import styles from "./page.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-
-const STATUS_ORDER = ["paid", "processing", "shipped", "delivered"];
-const STEPS = [
-    { key: "paid", label: "تم الدفع", icon: "💳" },
-    { key: "processing", label: "قيد التنفيذ", icon: "🧵" },
-    { key: "shipped", label: "تم الشحن", icon: "🚚" },
-    { key: "delivered", label: "تم التوصيل", icon: "🏠" },
-];
-
-const statusMap: Record<string, { color: string; label: string; bg: string }> = {
-    paid: { color: "#3B82F6", label: "تم الدفع", bg: "rgba(59, 130, 246, 0.1)" },
-    processing: { color: "#D97706", label: "قيد التنفيذ", bg: "rgba(217, 119, 6, 0.1)" },
-    shipped: { color: "#7C3AED", label: "تم الشحن", bg: "rgba(124, 58, 237, 0.1)" },
-    delivered: { color: "#059669", label: "تم التوصيل", bg: "rgba(5, 150, 105, 0.1)" },
-    refunded: { color: "#EF4444", label: "تم الاسترداد", bg: "rgba(239, 68, 68, 0.1)" },
-};
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function MyOrdersPage() {
     const { country, authUser } = useStore();
+    const { lang, t, isRTL } = useLanguage();
+
+    const STATUS_ORDER = ["paid", "processing", "shipped", "delivered"];
+    const STEPS = [
+        { key: "paid", label: lang === 'ar' ? "تم الدفع" : "Paid", icon: "💳" },
+        { key: "processing", label: lang === 'ar' ? "قيد التنفيذ" : "Processing", icon: "🧵" },
+        { key: "shipped", label: lang === 'ar' ? "تم الشحن" : "Shipped", icon: "🚚" },
+        { key: "delivered", label: lang === 'ar' ? "تم التوصيل" : "Delivered", icon: "🏠" },
+    ];
+    
+    const statusMap: Record<string, { color: string; label: string; bg: string }> = {
+        paid: { color: "#3B82F6", label: lang === 'ar' ? "تم الدفع" : "Paid", bg: "rgba(59, 130, 246, 0.1)" },
+        processing: { color: "#D97706", label: lang === 'ar' ? "قيد التنفيذ" : "Processing", bg: "rgba(217, 119, 6, 0.1)" },
+        shipped: { color: "#7C3AED", label: lang === 'ar' ? "تم الشحن" : "Shipped", bg: "rgba(124, 58, 237, 0.1)" },
+        delivered: { color: "#059669", label: lang === 'ar' ? "تم التوصيل" : "Delivered", bg: "rgba(5, 150, 105, 0.1)" },
+        refunded: { color: "#EF4444", label: lang === 'ar' ? "تم الاسترداد" : "Refunded", bg: "rgba(239, 68, 68, 0.1)" },
+    };
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -30,7 +32,7 @@ export default function MyOrdersPage() {
     useEffect(() => {
         const fetchOrders = async () => {
             if (!authUser) {
-                setError("يرجى تسجيل الدخول لعرض طلباتك.");
+                setError(lang === 'ar' ? "يرجى تسجيل الدخول لعرض طلباتك." : "Please sign in to view your orders.");
                 setLoading(false);
                 return;
             }
@@ -41,13 +43,13 @@ export default function MyOrdersPage() {
                     headers: token ? { "Authorization": `Bearer ${token}` } : {}
                 });
                 if (!res.ok) {
-                    if (res.status === 401) { setError("انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى."); return; }
+                    if (res.status === 401) { setError(lang === 'ar' ? "انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى." : "Session expired, please login again."); return; }
                     throw new Error("Failed to fetch");
                 }
                 const data = await res.json();
                 setOrders(data.orders || []);
             } catch (e) {
-                setError("عذراً، لم نتمكن من تحميل الطلبات.");
+                setError(lang === 'ar' ? "عذراً، لم نتمكن من تحميل الطلبات." : "Sorry, we couldn't load your orders.");
             } finally {
                 setLoading(false);
             }
@@ -74,9 +76,9 @@ export default function MyOrdersPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className={styles.header}
                 >
-                    <div className={styles.badge}>تتبع المشتريات</div>
-                    <h1 className={styles.title}>طلباتي <span>الخاصة</span></h1>
-                    <p className={styles.subtitle}>لديك {orders.length} طلبات مسجلة في حسابك</p>
+                    <div className={styles.badge}>{lang === 'ar' ? "تتبع المشتريات" : "Follow Purchases"}</div>
+                    <h1 className={styles.title}>{t('account.my_orders')} <span>{lang === 'ar' ? "الخاصة" : "History"}</span></h1>
+                    <p className={styles.subtitle}>{lang === 'ar' ? `لديك ${orders.length} طلبات مسجلة في حسابك` : `You have ${orders.length} orders registered in your account`}</p>
                 </motion.div>
 
                 {orders.length === 0 ? (
@@ -86,9 +88,9 @@ export default function MyOrdersPage() {
                         className={styles.emptyState}
                     >
                         <div className={styles.emptyIcon}>📦</div>
-                        <h2>لا توجد طلبات بعد</h2>
-                        <p>ابدأ رحلة التسوق الآن واصنع ذكرياتك الخاصة مع تصاميمنا</p>
-                        <Link href="/" className="btn btnPrimary">ابدأ التسوق ○</Link>
+                        <h2>{lang === 'ar' ? "لا توجد طلبات بعد" : "No orders yet"}</h2>
+                        <p>{lang === 'ar' ? "ابدأ رحلة التسوق الآن واصنع ذكرياتك الخاصة مع تصاميمنا" : "Start your shopping journey now and create your own memories with our designs"}</p>
+                        <Link href="/" className="btn btnPrimary">{t('home.shop_now')} ○</Link>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -116,9 +118,9 @@ export default function MyOrdersPage() {
                                     <Link href={`/myaccount/order-detail?id=${order.id}`} className={styles.orderCard}>
                                         <div className={styles.orderHeader}>
                                             <div className={styles.idGroup}>
-                                                <span className={styles.orderId}>طلب رقم #{order.id}</span>
+                                                <span className={styles.orderId}>{lang === 'ar' ? "طلب رقم" : "Order #"}#{order.id}</span>
                                                 <span className={styles.orderDate}>
-                                                    {new Date(order.created_at).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" })}
+                                                    {new Date(order.created_at).toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
                                                 </span>
                                             </div>
                                             <div className={styles.statusGroup}>
@@ -156,12 +158,12 @@ export default function MyOrdersPage() {
                                         )}
                                         {order.status === "refunded" && (
                                             <div style={{ padding: "0.75rem", background: "rgba(239, 68, 68, 0.05)", borderRadius: "8px", fontSize: "0.8rem", color: "#EF4444", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                                                <span>↩️</span> تم استرداد مبالغ هذا الطلب. لمزيد من التفاصيل يرجى الاطلاع على صفحة الطلب.
+                                                <span>↩️</span> {lang === 'ar' ? "تم استرداد مبالغ هذا الطلب. لمزيد من التفاصيل يرجى الاطلاع على صفحة الطلب." : "This order has been refunded. For more details, please see the order page."}
                                             </div>
                                         )}
 
                                         <div className={styles.cardFooter}>
-                                            <span className={styles.detailsLink}>عرض التفاصيل وتتبع الشحنة ←</span>
+                                            <span className={styles.detailsLink}>{lang === 'ar' ? "عرض التفاصيل وتتبع الشحنة ←" : "View Details & Track Shipment →"}</span>
                                         </div>
                                     </Link>
                                 </motion.div>

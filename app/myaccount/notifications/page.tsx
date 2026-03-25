@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import styles from "./page.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Notification = {
     id: number;
@@ -16,6 +17,7 @@ type Notification = {
 
 export default function NotificationsPage() {
     const { authUser } = useStore();
+    const { lang, t, isRTL } = useLanguage();
     const [notifs, setNotifs] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export default function NotificationsPage() {
         await fetch("/api/notifications", { method: "PATCH" });
         setNotifs(n => n.map(x => ({ ...x, read: 1 })));
         window.dispatchEvent(new Event("notif-update"));
-        toast.success("Curated list marked as read");
+        toast.success(t('account.notifications_marked'));
     };
 
     const markOneRead = async (id: number) => {
@@ -54,9 +56,9 @@ export default function NotificationsPage() {
         <div className={styles.page}>
             <div className="container" style={{ textAlign: "center", paddingBlock: "8rem" }}>
                 <div className={styles.emptyIcon}>👤</div>
-                <h2 className={styles.title} style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>Boutique Access Required</h2>
-                <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>Please sign in to view your bespoke notifications.</p>
-                <Link href="/login" className="btn btnPrimary">Sign In ○</Link>
+                <h2 className={styles.title} style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>{t('account.notifications_signin_title')}</h2>
+                <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>{t('account.notifications_signin_desc')}</p>
+                <Link href="/login" className="btn btnPrimary">{t('account.notifications_signin_btn')}</Link>
             </div>
         </div>
     );
@@ -66,11 +68,11 @@ export default function NotificationsPage() {
             <div className="container" style={{ maxWidth: 800 }}>
                 <div className={styles.header}>
                     <h1 className={styles.title}>
-                        Notifications {unread > 0 && <span>• {unread} New</span>}
+                        {t('account.notifications')} {unread > 0 && <span>• {unread} {t('account.notifications_new')}</span>}
                     </h1>
                     {unread > 0 && (
                         <button className="btn btnGhost btnSm" onClick={markAllRead} style={{ color: "var(--primary)", fontWeight: 700 }}>
-                            Clear Unread ○
+                            {t('account.notifications_clear')}
                         </button>
                     )}
                 </div>
@@ -78,14 +80,14 @@ export default function NotificationsPage() {
                 {loading ? (
                     <div className={styles.emptyState}>
                         <div style={{ fontSize: "2rem", marginBottom: "1rem", animation: "spin 2s linear infinite" }}>⌛</div>
-                        <p className={styles.meta}>Refreshing your feed...</p>
+                        <p className={styles.meta}>{t('common.loading')}</p>
                         <style>{`@keyframes spin { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }`}</style>
                     </div>
                 ) : notifs.length === 0 ? (
                     <div className={styles.emptyState}>
                         <div className={styles.emptyIcon}>🔔</div>
-                        <h2 className={styles.title} style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>All quiet</h2>
-                        <p style={{ color: "var(--text-muted)" }}>We'll notify you here about your orders and boutique updates.</p>
+                        <h2 className={styles.title} style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>{t('account.notifications_empty_title')}</h2>
+                        <p style={{ color: "var(--text-muted)" }}>{t('account.notifications_empty_desc')}</p>
                     </div>
                 ) : (
                     <div className={styles.feed}>
@@ -102,12 +104,12 @@ export default function NotificationsPage() {
                                 <div className={styles.content}>
                                     <p className={styles.message}>{notif.message}</p>
                                     <div className={styles.meta}>
-                                        <span>{new Date(notif.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                                        <span>{new Date(notif.created_at).toLocaleDateString(lang === 'ar' ? "ar-SA" : "en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                                         {notif.order_id && (
                                             <Link href={`/myaccount/order-detail?id=${notif.order_id}`}
                                                 className={styles.viewLink}
                                                 onClick={e => e.stopPropagation()}>
-                                                Trace Order →
+                                                {t('account.notifications_trace')}
                                             </Link>
                                         )}
                                     </div>

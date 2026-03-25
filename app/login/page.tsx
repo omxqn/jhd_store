@@ -57,7 +57,7 @@ export default function LoginPage() {
             <div className={styles.authCard}>
                 <div className={styles.header}>
                     <div className={styles.icon}>✧</div>
-                    <h1 className={styles.title}>Boutique Access</h1>
+                    <h1 className={styles.title}>Store Access</h1>
                     <p className={styles.subtitle}>
                         {step === "email"
                             ? "Enter your electronic mail to receive a verification code"
@@ -80,7 +80,7 @@ export default function LoginPage() {
                                 <input
                                     className="formInput"
                                     type="email"
-                                    placeholder="name@boutique.com"
+                                    placeholder="name@store.com"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                     required

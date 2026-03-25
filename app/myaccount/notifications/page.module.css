@@ -52,8 +52,9 @@
 }
 
 .notifUnread {
-    border-color: var(--primary-soft);
-    background: linear-gradient(to right, rgba(184, 134, 11, 0.02), transparent);
+    border-color: var(--primary);
+    background: rgba(198, 40, 64, 0.04); /* Soft tint of brand red */
+    box-shadow: 0 4px 12px rgba(198, 40, 64, 0.05); /* Subtle glow */
 }
 
 .notif:hover {
