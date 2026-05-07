@@ -6,11 +6,16 @@ import { motion } from "framer-motion";
 export function Footer() {
     return (
         <footer className={styles.footer}>
+            <div className={styles.topDecor} aria-hidden="true" />
+            <div className={styles.stamps} aria-hidden="true">
+                <img src="/heart-logo.png" alt="" className={styles.stampLeft} />
+                <img src="/footer-heart-symbol.png" alt="" className={styles.stampRight} />
+            </div>
             <div className={`container ${styles.grid}`}>
                 {/* Brand Column */}
                 <div className={styles.brandCol}>
                     <Link href="/" className={styles.logo}>
-                        <div className={styles.logoMark}>J</div>
+                        <img src="/heart-logo.png" alt="JHD LINE" className={styles.logoMark} />
                         <div className={styles.logoText}>JHD <span>LINE</span></div>
                     </Link>
                     <p className={styles.description}>
@@ -56,6 +61,11 @@ export function Footer() {
                             اشتراك
                         </motion.button>
                     </form>
+                    <div className={styles.newsNote}>
+                        <span>عر / EN</span>
+                        <span>GCC Delivery</span>
+                        <span>Tailored Pieces</span>
+                    </div>
                 </div>
             </div>
 

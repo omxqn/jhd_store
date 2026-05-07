@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import AnimationWrapper from "@/components/AnimationWrapper";
 import { Toaster } from "react-hot-toast";
 import AuthProvider from "@/components/AuthProvider";
 import { GlobalLoader } from "@/components/GlobalLoader";
 import { Suspense } from "react";
+import { RouteChrome } from "@/components/RouteChrome";
 
 export const metadata: Metadata = {
   title: "Jihad Store — Premium GCC Fashion",
@@ -14,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
-import { MarqueeBanner } from "@/components/MarqueeBanner";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,12 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Suspense fallback={null}>
               <GlobalLoader />
             </Suspense>
-            <MarqueeBanner />
-            <Header />
-            <main style={{ minHeight: "calc(100vh - 72px)" }}>
+            <RouteChrome>
               <AnimationWrapper>{children}</AnimationWrapper>
-            </main>
-            <Footer />
+            </RouteChrome>
             <Toaster
               position="bottom-right"
               toastOptions={{

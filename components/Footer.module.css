@@ -1,12 +1,58 @@
 .footer {
-    background: rgba(249, 241, 200, 0.4);
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255, 249, 223, 0.96), rgba(255, 243, 190, 0.92)),
+        rgba(249, 241, 200, 0.42);
     backdrop-filter: blur(16px);
     border-top: 1px solid rgba(198, 40, 40, 0.1);
-    padding-top: 5rem;
+    padding-top: 5.5rem;
     color: var(--secondary);
 }
 
+.topDecor {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 46px;
+    background-image: url('/heart-garland.png');
+    background-repeat: repeat-x;
+    background-position: center top;
+    background-size: auto 28px;
+    opacity: 0.96;
+    pointer-events: none;
+}
+
+.stamps {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.stampLeft,
+.stampRight {
+    position: absolute;
+    object-fit: contain;
+    opacity: 0.22;
+    filter: drop-shadow(0 14px 26px rgba(198, 40, 101, 0.1));
+}
+
+.stampLeft {
+    inset-inline-start: clamp(1rem, 4vw, 2.5rem);
+    top: 5rem;
+    width: clamp(3rem, 5vw, 4.5rem);
+    animation: footerFloat 8s ease-in-out infinite;
+}
+
+.stampRight {
+    inset-inline-end: clamp(1rem, 4vw, 2.5rem);
+    bottom: 4rem;
+    width: clamp(4rem, 6vw, 5.5rem);
+    animation: footerFloat 10s ease-in-out infinite reverse;
+}
+
 .grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1.5fr;
     gap: 4rem;
@@ -28,20 +74,15 @@
 }
 
 .logoMark {
-    width: 32px;
-    height: 32px;
-    background: var(--primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-weight: 800;
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(198, 40, 101, 0.16));
 }
 
 .logoText {
     font-family: var(--ff-serif);
-    font-size: 1.8rem;
+    font-size: clamp(1.6rem, 1.5vw, 1.95rem);
     font-weight: 700;
     letter-spacing: 0.05em;
 }
@@ -52,7 +93,7 @@
 }
 
 .description {
-    font-size: 1.75rem; /* ~28px Bold description */
+    font-size: clamp(1.15rem, 1.1vw, 1.45rem);
     line-height: 1.5;
     color: var(--text-muted);
     font-weight: 500;
@@ -61,17 +102,22 @@
 
 .socials {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
 }
 
 .socialIcon {
-    font-size: 1.1rem; /* Increased from 0.8rem */
+    font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--primary);
     text-decoration: none;
     transition: opacity 300ms ease;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(198, 40, 40, 0.08);
 }
 
 .socialIcon:hover {
@@ -79,7 +125,7 @@
 }
 
 .colTitle {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
     color: var(--secondary);
@@ -95,7 +141,7 @@
 .linksList a {
     text-decoration: none;
     color: var(--text-muted);
-    font-size: 1.25rem;
+    font-size: 1.05rem;
     transition: all 300ms ease;
 }
 
@@ -109,10 +155,15 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(198, 40, 40, 0.08);
+    border-radius: 28px;
+    box-shadow: 0 18px 40px rgba(120, 84, 18, 0.08);
 }
 
 .newsletterText {
-    font-size: 1.15rem; /* ~18px */
+    font-size: 1rem;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -124,12 +175,12 @@
 
 .input {
     flex: 1;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: white;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(198, 40, 40, 0.08);
+    background: rgba(255, 255, 255, 0.95);
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     outline: none;
 }
 
@@ -138,22 +189,54 @@
 }
 
 .submitBtn {
-    padding: 0.75rem 1.25rem;
+    padding: 0.95rem 1.25rem;
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 16px;
     font-weight: 700;
     cursor: pointer;
 }
 
+.newsNote {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.newsNote span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 248, 226, 0.96);
+    border: 1px solid rgba(198, 40, 40, 0.08);
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
 .bottomBar {
+    position: relative;
+    z-index: 1;
     padding-block: 2rem;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     text-align: center;
-    font-size: 1.1rem; /* ~17px */
+    font-size: 1rem;
     color: var(--text-muted);
     font-weight: 500;
+}
+
+@keyframes footerFloat {
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-8px) rotate(3deg);
+    }
 }
 
 @media (max-width: 992px) {
@@ -166,5 +249,23 @@
 @media (max-width: 600px) {
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    .footer {
+        padding-top: 4.75rem;
+    }
+
+    .newsletterCol {
+        padding: 1.2rem;
+        border-radius: 22px;
+    }
+
+    .newsletterForm {
+        flex-direction: column;
+    }
+
+    .input,
+    .submitBtn {
+        width: 100%;
     }
 }

@@ -55,6 +55,68 @@ body::before {
   animation: bgFade 2s ease-out;
 }
 
+body.home-route {
+  background-color: #fff5b8;
+  
+}
+
+body.home-route::before {
+  display: none;
+}
+
+body.home-route main {
+  animation: none;
+}
+
+body.inner-route {
+  background:
+    radial-gradient(circle at top, rgba(255, 247, 199, 0.88), rgba(255, 245, 184, 0.96) 45%, rgba(255, 243, 170, 1) 100%);
+}
+
+body.inner-route::before {
+  display: block;
+  opacity: 0.22;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.95) 0, rgba(255, 255, 255, 0) 18%),
+    radial-gradient(circle at 80% 15%, rgba(255, 250, 221, 0.92) 0, rgba(255, 250, 221, 0) 16%),
+    radial-gradient(circle at 50% 75%, rgba(255, 255, 255, 0.8) 0, rgba(255, 255, 255, 0) 14%),
+    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size:
+    420px 420px,
+    460px 460px,
+    380px 380px,
+    140px 140px,
+    140px 140px;
+  background-position:
+    0 0,
+    100% 0,
+    50% 50%,
+    0 0,
+    0 0;
+}
+
+body.inner-route::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    url('/hero-scribble.png'),
+    url('/hero-scribble.png');
+  background-position:
+    left top,
+    right top;
+  background-size:
+    auto 260px,
+    auto 260px;
+  background-repeat:
+    repeat-y,
+    repeat-y;
+  opacity: 0.38;
+}
+
 @keyframes bgFade {
   from {
     opacity: 0;
@@ -67,6 +129,54 @@ body::before {
 
 main {
   animation: pageIn .8s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.siteMain {
+  position: relative;
+  z-index: 1;
+}
+
+.siteShell {
+  position: relative;
+  padding: clamp(1.4rem, 3vw, 2rem) 0 clamp(3rem, 6vw, 4.5rem);
+  overflow: clip;
+}
+
+.siteShell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0) 34%),
+    linear-gradient(180deg, rgba(255, 248, 214, 0.28), rgba(255, 248, 214, 0.08));
+}
+
+.siteContent {
+  position: relative;
+  z-index: 1;
+}
+
+.siteGarland {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 40px;
+  background-image: url('/heart-garland.png');
+  background-position: center;
+  background-size: auto 28px;
+  background-repeat: repeat-x;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.siteGarlandTop {
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.siteGarlandBottom {
+  margin-top: clamp(2rem, 4vw, 3rem);
 }
 
 @keyframes pageIn {
@@ -144,6 +254,23 @@ main {
   body {
     font-size: 20px;
   }
+
+  body.inner-route::after {
+    background-size:
+      auto 180px,
+      auto 180px;
+    opacity: 0.28;
+  }
+
+  .siteShell {
+    padding-top: 0.85rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .siteGarland {
+    height: 28px;
+    background-size: auto 22px;
+  }
 }
 
 /* RTL Support & Arabic Typography */
@@ -165,6 +292,7 @@ main {
   max-width: var(--max-w);
   margin-inline: auto;
   padding-inline: 20px;
+  
 }
 
 .btn {
@@ -252,6 +380,7 @@ main {
   letter-spacing: .05em;
   text-transform: uppercase;
   line-height: 1;
+  
 }
 
 .badgeSale {

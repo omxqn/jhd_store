@@ -1,12 +1,17 @@
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 120px 2rem 80px;
+    padding: 64px 2rem 80px;
 }
 
 .hero {
     text-align: center;
     margin-bottom: 5rem;
+    padding: clamp(2rem, 4vw, 3rem);
+    background: rgba(255, 250, 236, 0.76);
+    border: 1px solid rgba(198, 40, 40, 0.08);
+    border-radius: 32px;
+    box-shadow: 0 20px 40px rgba(120, 84, 18, 0.08);
 }
 
 .badge {
@@ -82,10 +87,11 @@
 }
 
 .formContainer {
-    background: white;
+    background: rgba(255, 252, 243, 0.94);
     padding: 3.5rem;
     border-radius: 30px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 30px 60px rgba(120, 84, 18, 0.1);
+    border: 1px solid rgba(198, 40, 40, 0.08);
 }
 
 .form {
@@ -143,6 +149,7 @@
     overflow: hidden;
     height: 400px;
     border: 1px solid rgba(198, 40, 40, 0.1);
+    box-shadow: 0 20px 40px rgba(120, 84, 18, 0.08);
 }
 
 .mapPlaceholder {

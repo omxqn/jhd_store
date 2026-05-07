@@ -1,383 +1,393 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStore, formatPrice } from "@/lib/store";
-import { COUNTRIES } from "@/lib/data";
-import styles from "./Header.module.css";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
+import { COUNTRIES } from "@/lib/data";
+import { formatPrice, useStore } from "@/lib/store";
+import styles from "./Header.module.css";
+
+type SearchProduct = {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+};
+
+function safeJson<T>(value: unknown, fallback: T): T {
+  if (Array.isArray(value)) return value as T;
+  if (typeof value !== "string") return fallback;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeSearchProduct(product: any): SearchProduct {
+  return {
+    id: String(product.id),
+    name: product.name,
+    price: Number(product.price) || 0,
+    images: safeJson<string[]>(product.images, [product.images].filter(Boolean)),
+  };
+}
 
 export function Header() {
-    const { country, setCountry, cart, wishlist, authUser, clearAuth } = useStore();
-    const { lang, setLang, t, isRTL } = useLanguage();
-    const router = useRouter();
-    const [countryOpen, setCountryOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const searchRef = useRef<HTMLDivElement>(null);
-    const profileRef = useRef<HTMLDivElement>(null);
-    const countryRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { lang, setLang, t } = useLanguage();
+  const { country, setCountry, cart, wishlist, authUser, clearAuth } = useStore();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const countryMenuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-    const [notifications, setNotifications] = useState<any[]>([]);
-    const unreadCount = notifications.filter(n => !n.read).length;
-    const supportUnread = notifications.filter(n => n.type === "support" && !n.read).length;
-    const cartCount = cart.reduce((a, i) => a + i.quantity, 0);
-
-    const fetchNotifs = async () => {
-        if (!authUser) { setNotifications([]); return; }
-        try {
-            const res = await fetch("/api/notifications");
-            const data = await res.json();
-            setNotifications(data.notifications || []);
-        } catch (e) { }
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false);
+      }
+      if (countryMenuRef.current && !countryMenuRef.current.contains(target)) {
+        setCountryOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(target)) {
+        setSearchOpen(false);
+      }
     };
 
-    useEffect(() => {
-        fetchNotifs();
-        // Custom event for instant updates from notifications page
-        window.addEventListener("notif-update", fetchNotifs);
-        return () => window.removeEventListener("notif-update", fetchNotifs);
-    }, [authUser]);
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProfileMenuOpen(false);
+        setCountryOpen(false);
+        setSearchOpen(false);
+      }
+    };
 
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 10);
-        window.addEventListener("scroll", onScroll);
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
 
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
-            if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
-            if (countryRef.current && !countryRef.current.contains(e.target as Node)) setCountryOpen(false);
-        };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
-    useEffect(() => {
-        document.body.style.overflow = mobileOpen ? "hidden" : "";
-        
-        if (profileOpen || mobileOpen) {
-            document.body.classList.add("hide-admin-nav");
-        } else {
-            document.body.classList.remove("hide-admin-nav");
-        }
+  useEffect(() => {
+    if (searchQuery.trim().length < 1) {
+      setSearchResults([]);
+      return;
+    }
 
-        return () => { 
-            document.body.style.overflow = ""; 
-            document.body.classList.remove("hide-admin-nav");
-        };
-    }, [mobileOpen, profileOpen]);
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}`);
+        const data = await res.json();
+        setSearchResults((data.products || []).map(normalizeSearchProduct).slice(0, 5));
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
 
-    const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [searchLoading, setSearchLoading] = useState(false);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    useEffect(() => {
-        if (searchQuery.length < 1) {
-            setSearchResults([]);
-            return;
-        }
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const promoCopy = lang === "ar" ? "كود خصم ترحيبي لأول طلب" : "Welcome discount code for your first order";
+  const searchPlaceholder = lang === "ar" ? "ابحث عن منتج" : "Search products";
+  const guestPrimaryLabel = lang === "ar" ? "الدخول / التسجيل" : "Login / Register";
+  const guestSecondaryLabel = lang === "ar" ? "إنشاء حساب" : "Create Account";
+  const notificationsLabel = lang === "ar" ? "التنبيهات" : "Notifications";
+  const ordersLabel = lang === "ar" ? "طلباتي" : "My Orders";
+  const wishlistLabel = lang === "ar" ? "المفضلة" : "Wishlist";
+  const supportLabel = lang === "ar" ? "تذاكر الدعم" : "Support Tickets";
+  const logoutLabel = lang === "ar" ? "تسجيل الخروج" : "Sign Out";
+  const guestName = lang === "ar" ? "مستخدم ضيف" : "Guest User";
+  const guestWelcome = lang === "ar" ? "مرحباً بك في متجر جهاد" : "Welcome to Jihad Store";
+  const accountGroupLabel = lang === "ar" ? "حسابي" : "My Account";
+  const dashboardLabel = lang === "ar" ? "لوحة الحساب" : "Account Dashboard";
+  const aboutLabel = lang === "ar" ? "عن جهاد" : "About Jihad";
+  const adminLabel = lang === "ar" ? "لوحة الإدارة" : "Admin Panel";
 
-        const timer = setTimeout(async () => {
-            setSearchLoading(true);
-            try {
-                const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}`);
-                const data = await res.json();
-                const items = (data.products || []).slice(0, 5).map((p: any) => ({
-                    ...p,
-                    images: typeof p.images === "string" ? JSON.parse(p.images) : p.images
-                }));
-                setSearchResults(items);
-            } catch (e) {
-                console.error("Search fetch failed", e);
-            } finally {
-                setSearchLoading(false);
-            }
-        }, 400);
+  const handleProfileLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore sync errors and clear local auth state anyway.
+    }
 
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+    clearAuth();
+    setProfileMenuOpen(false);
+    toast.success(lang === "ar" ? "تم تسجيل الخروج" : "Signed out");
+    router.push("/");
+  };
 
-    const closeAll = () => { setMobileOpen(false); setProfileOpen(false); setCountryOpen(false); };
+  return (
+    <>
+      <div className={styles.topBanner}>
+        <span className={styles.topBannerDot} />
+        <span className={styles.topBannerText}>{promoCopy}</span>
+        <span className={styles.topBannerCode}>Welcome10</span>
+        <span className={styles.topBannerDot} />
+      </div>
 
-    return (
-        <>
-            <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
-                <div className={styles.inner}>
-                    {/* Brand Logo */}
-                    <Link href="/" className={styles.logo} title="JHD LINE">
-                        <img src="/heart-logo.png" alt="JHD LINE" className={styles.logoImg} />
-                        <div className={`${styles.logoText} ${styles.desktopOnly}`}>JHD <span>LINE</span></div>
-                    </Link>
+      <header className={styles.header}>
+        <div className={styles.headerActions}>
+          <div className={styles.searchWrapper} ref={searchRef}>
+            <button
+              type="button"
+              className={`${styles.iconButton} ${searchOpen ? styles.iconButtonActive : ""}`}
+              aria-label="Search"
+              onClick={() => {
+                setSearchOpen((open) => !open);
+                setProfileMenuOpen(false);
+                setCountryOpen(false);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+            </button>
 
-                    {/* Primary Links (Right Side in RTL) */}
-                    <nav className={`${styles.primaryNav} ${styles.desktopOnly}`}>
-                        <Link href="/" className={styles.navLink}>{t('nav.home')}</Link>
-                        <Link href="/policy" className={styles.navLink}>{t('nav.policy')}</Link>
-                        <Link href="/contact" className={styles.navLink}>{t('nav.contact')}</Link>
-                    </nav>
-
-                    {/* Actions (Left Side in RTL) */}
-                    <div className={styles.actions}>
-                        <div className={styles.searchWrapper} ref={searchRef}>
-                            <button className={styles.iconBtn} onClick={() => setSearchOpen(o => !o)} title="Search">
-                                <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-                            </button>
-                            {searchOpen && (
-                                <div className={styles.searchDropdown}>
-                                    <input
-                                        type="text"
-                                        className={styles.searchInput}
-                                        placeholder={t('common.search')}
-                                        autoFocus
-                                        value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
-                                    />
-                                    {searchResults.length > 0 && (
-                                        <div className={styles.searchResults}>
-                                            {searchResults.map(p => (
-                                                <Link key={p.id} href={`/product/${p.id}`} className={styles.searchNavOption} onClick={() => setSearchOpen(false)}>
-                                                    <img src={p.images[0]} alt="" className={styles.searchThumb} />
-                                                    <div>
-                                                        <div className={styles.searchItemName}>{p.name}</div>
-                                                        <div className={styles.searchItemPrice}>{formatPrice(p.price, country)}</div>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+            {searchOpen ? (
+              <div className={styles.searchDropdown}>
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  autoFocus
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                <div className={styles.searchResults}>
+                  {searchLoading ? (
+                    <div className={styles.searchState}>{lang === "ar" ? "جاري البحث..." : "Searching..."}</div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((product) => (
+                      <Link
+                        key={product.id}
+                        href={`/product/${product.id}`}
+                        className={styles.searchResultLink}
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <img
+                          src={product.images[0] || "/heart-logo.png"}
+                          alt={product.name}
+                          className={styles.searchThumb}
+                        />
+                        <div className={styles.searchMeta}>
+                          <span className={styles.searchItemName}>{product.name}</span>
+                          <span className={styles.searchItemPrice}>{formatPrice(product.price, country)}</span>
                         </div>
+                      </Link>
+                    ))
+                  ) : searchQuery.trim() ? (
+                    <div className={styles.searchState}>{lang === "ar" ? "لا توجد نتائج" : "No results found"}</div>
+                  ) : (
+                    <div className={styles.searchState}>{lang === "ar" ? "ابدأ بالكتابة للبحث" : "Start typing to search"}</div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
 
-                        <div className={styles.langPicker}>
-                            <button 
-                                className={styles.langBtn} 
-                                onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-                            >
-                                {lang === "ar" ? "EN" : "عربي"}
-                            </button>
-                        </div>
+          <div className={styles.countryPicker} ref={countryMenuRef}>
+            <button
+              type="button"
+              className={`${styles.iconButton} ${countryOpen ? styles.iconButtonActive : ""}`}
+              aria-label="Country"
+              onClick={() => {
+                setCountryOpen((open) => !open);
+                setProfileMenuOpen(false);
+                setSearchOpen(false);
+              }}
+            >
+              <span className={styles.flag}>{country.flag}</span>
+            </button>
 
-                        <div className={styles.countryPicker} ref={countryRef}>
-                            <button className={styles.countryBtn} onClick={() => { setCountryOpen(o => !o); setProfileOpen(false); }}>
-                                <span className={styles.flag}>{country.flag}</span>
-                            </button>
-                            {countryOpen && (
-                                <div className={styles.dropdown}>
-                                    {COUNTRIES.map(c => (
-                                        <button key={c.code}
-                                            className={`${styles.countryOption} ${country.code === c.code ? styles.selected : ""}`}
-                                            onClick={() => { setCountry(c); setCountryOpen(false); }}>
-                                            <span className={styles.flag}>{c.flag}</span>
-                                            <span className={styles.optName}>{c.name}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+            {countryOpen ? (
+              <div className={styles.countryDropdown}>
+                {COUNTRIES.map((item) => (
+                  <div key={item.code} className={styles.countryRow}>
+                    <button
+                      type="button"
+                      className={`${styles.countryOption} ${country.code === item.code ? styles.countryOptionActive : ""}`}
+                      onClick={() => {
+                        setCountry(item);
+                        setLang("ar");
+                        setCountryOpen(false);
+                      }}
+                    >
+                      <span className={styles.flag}>{item.flag}</span>
+                      <span className={styles.optName}>{item.name}</span>
+                    </button>
 
+                    <div className={styles.countryLangs}>
+                      <button
+                        type="button"
+                        className={`${styles.countryLangButton} ${country.code === item.code && lang === "ar" ? styles.countryLangButtonActive : ""}`}
+                        onClick={() => {
+                          setCountry(item);
+                          setLang("ar");
+                          setCountryOpen(false);
+                        }}
+                      >
+                        عر
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.countryLangButton} ${country.code === item.code && lang === "en" ? styles.countryLangButtonActive : ""}`}
+                        onClick={() => {
+                          setCountry(item);
+                          setLang("en");
+                          setCountryOpen(false);
+                        }}
+                      >
+                        EN
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-                        <Link href="/myaccount/wishlist" className={styles.iconBtn} title="Wishlist">
-                            <svg className={styles.iconSvg} viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                            {wishlist.length > 0 && <span className={styles.badgeCount}>{wishlist.length}</span>}
+          <Link href="/myaccount/wishlist" className={styles.iconButton} aria-label="Wishlist">
+            <svg viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            {wishlist.length > 0 ? <span className={styles.iconBadge}>{wishlist.length}</span> : null}
+          </Link>
+
+          <Link href="/cart" className={styles.iconButton} aria-label="Cart">
+            <span className={styles.iconEmoji} aria-hidden="true">💼</span>
+            {cartCount > 0 ? <span className={styles.iconBadge}>{cartCount}</span> : null}
+          </Link>
+
+          <div className={styles.profileMenuWrap} ref={profileMenuRef}>
+            <button
+              type="button"
+              className={`${styles.iconButton} ${profileMenuOpen ? styles.iconButtonActive : ""}`}
+              aria-label="Account"
+              aria-expanded={profileMenuOpen}
+              aria-haspopup="menu"
+              onClick={() => {
+                setProfileMenuOpen((open) => !open);
+                setCountryOpen(false);
+                setSearchOpen(false);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+
+            {profileMenuOpen ? (
+              <div className={styles.profileMenuPopup} role="menu">
+                <div className={styles.profileMenuHeader}>
+                  <div className={styles.profileMenuAvatar}>
+                    {(authUser?.name?.trim()?.charAt(0) || "G").toUpperCase()}
+                  </div>
+                  <div className={styles.profileMenuMeta}>
+                    <strong className={styles.profileMenuName}>{authUser?.name || guestName}</strong>
+                    <span className={styles.profileMenuHint}>{authUser?.email || guestWelcome}</span>
+                  </div>
+                </div>
+
+                <div className={styles.profileMenuBody}>
+                  <div className={styles.profileMenuGroup}>
+                    <div className={styles.profileMenuGroupLabel}>{accountGroupLabel}</div>
+                    <nav className={styles.profileMenuNav}>
+                      <Link href="/myaccount/notifications" className={styles.profileMenuLink} onClick={() => setProfileMenuOpen(false)}>
+                        <span className={styles.profileMenuIcon}>🔔</span>
+                        <span>{notificationsLabel}</span>
+                      </Link>
+                      <Link href="/myaccount/my-orders" className={styles.profileMenuLink} onClick={() => setProfileMenuOpen(false)}>
+                        <span className={styles.profileMenuIcon}>📦</span>
+                        <span>{ordersLabel}</span>
+                      </Link>
+                      <Link href="/myaccount/wishlist" className={styles.profileMenuLink} onClick={() => setProfileMenuOpen(false)}>
+                        <span className={styles.profileMenuIcon}>❤️</span>
+                        <span>{wishlistLabel}</span>
+                      </Link>
+                      <Link href="/myaccount/support" className={styles.profileMenuLink} onClick={() => setProfileMenuOpen(false)}>
+                        <span className={styles.profileMenuIcon}>💬</span>
+                        <span>{supportLabel}</span>
+                      </Link>
+                      {authUser?.role === "admin" || authUser?.role === "super_admin" ? (
+                        <Link href="/admin" className={styles.profileMenuLink} onClick={() => setProfileMenuOpen(false)}>
+                          <span className={styles.profileMenuIcon}>🛠️</span>
+                          <span>{adminLabel}</span>
                         </Link>
-
-                        <Link href="/cart" className={styles.iconBtn} title="Cart">
-                            <span className={styles.iconSvg}>💼</span>
-                            {cartCount > 0 && <span className={styles.badgeCount}>{cartCount}</span>}
-                        </Link>
-
-                        <div className={`${styles.profilePicker} ${styles.desktopOnly}`} ref={profileRef}>
-                            <button className={styles.iconBtn} onClick={() => { setProfileOpen(o => !o); setCountryOpen(false); }}>
-                                <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                            </button>
-                            {profileOpen && (
-                                <div className={styles.profilePanel}>
-                                    <div className={styles.profileHeader}>
-                                        <div className={styles.avatar}>{authUser?.name?.charAt(0) ?? "G"}</div>
-                                        <div className={styles.profileMeta}>
-                                            <div className={styles.profileName}>{authUser?.name ?? t('header.guest_user')}</div>
-                                            <div className={styles.profileEmail}>{authUser?.email ?? t('header.welcome_store')}</div>
-                                        </div>
-                                    </div>
-                                    <div className={styles.profileBody}>
-                                        <div className={styles.navGroup}>
-                                            <div className={styles.groupLabel}>{t('common.my_account')}</div>
-                                            <nav className={styles.profileNav}>
-                                                <Link href="/myaccount/notifications" onClick={() => setProfileOpen(false)}>
-                                                    <span className={styles.navIcon}>🔔</span>
-                                                    <span>{t('account.notifications')}</span>
-                                                    {unreadCount > 0 && <span className={styles.notifBadge}>{unreadCount}</span>}
-                                                </Link>
-                                                <Link href="/myaccount/my-orders" onClick={() => setProfileOpen(false)}>
-                                                    <span className={styles.navIcon}>📦</span>
-                                                    <span>{t('account.my_orders')}</span>
-                                                </Link>
-                                                <Link href="/myaccount/wishlist" onClick={() => setProfileOpen(false)}>
-                                                    <span className={styles.navIcon}>❤️</span>
-                                                    <span>{t('nav.most_selling')}</span>
-                                                </Link>
-                                                <Link href="/myaccount/support" onClick={() => setProfileOpen(false)}>
-                                                    <span className={styles.navIcon}>💬</span>
-                                                    <span>{t('account.support_tickets')}</span>
-                                                    {supportUnread > 0 && <span className={styles.notifBadge}>{supportUnread}</span>}
-                                                </Link>
-                                            </nav>
-                                        </div>
-                                        
-                                        {(authUser?.role === "admin" || authUser?.role === "super_admin") && (
-                                            <div className={styles.navGroup}>
-                                                <div className={styles.groupLabel}>{t('header.management')}</div>
-                                                <nav className={styles.profileNav}>
-                                                    <Link href="/admin" onClick={() => setProfileOpen(false)}>
-                                                        <span className={styles.navIcon}>🛠️</span>
-                                                        <span>{t('header.admin_panel')}</span>
-                                                    </Link>
-                                                </nav>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className={styles.profileFooter}>
-                                        {authUser ? (
-                                            <button className={styles.signoutBtn} onClick={async () => {
-                                                await fetch("/api/auth/logout", { method: "POST" });
-                                                clearAuth(); setProfileOpen(false); router.push("/");
-                                            }}>{t('common.sign_out')}</button>
-                                        ) : (
-                                            <Link href="/login" className="btn btnPrimary btnBlock btnSm" onClick={() => setProfileOpen(false)}>{t('header.login_register')}</Link>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <button className={`${styles.iconBtn} ${styles.mobileOnly}`} onClick={() => setMobileOpen(o => !o)}>
-                            <span>{mobileOpen ? "✕" : "☰"}</span>
+                      ) : null}
+                      {authUser ? (
+                        <button type="button" className={styles.profileMenuButton} onClick={handleProfileLogout}>
+                          <span className={styles.profileMenuIcon}>↩</span>
+                          <span>{logoutLabel}</span>
                         </button>
-                    </div>
+                      ) : null}
+                    </nav>
+                  </div>
                 </div>
-            </header>
 
-            {/* ── Mobile Drawer ── */}
-            {mobileOpen && (
-                <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
-                    <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
-                        <button className={styles.mobileClose} onClick={() => setMobileOpen(false)}>✕</button>
-                        
-                        <div className={styles.mobileDrawerHeader}>
-                            {authUser ? (
-                                <div className={styles.mobileUserIdentity}>
-                                    <div className={styles.avatarLarge}>{authUser.name.charAt(0)}</div>
-                                    <div className={styles.mobileUserMeta}>
-                                        <div className={styles.mobileUserNameLuxe}>{authUser.name}</div>
-                                        <div className={styles.mobileUserEmailLuxe}>{authUser.email}</div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Link href="/login" className={styles.mobileGuestHero} onClick={closeAll}>
-                                    <div className={styles.guestIcon}>✨</div>
-                                    <div className={styles.guestMeta}>
-                                        <div className={styles.guestTitle}>{t('header.welcome_jhd')}</div>
-                                        <div className={styles.guestSub}>{t('header.login_world')}</div>
-                                    </div>
-                                </Link>
-                            )}
-                        </div>
-
-                        <div className={styles.mobileBody}>
-                            <div className={styles.drawerSection}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-                                    <div className={styles.sectionLabel}>{t('nav.categories')}</div>
-                                    <button 
-                                        className={styles.mobileLangBtn} 
-                                        onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-                                    >
-                                        {lang === "ar" ? t('header.english') : t('header.arabic')}
-                                    </button>
-                                </div>
-                                <nav className={styles.mobilePrimaryNav}>
-                                    <Link href="/" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>{t('nav.home')}</span>
-                                        <span className={styles.navSub}>{t('header.browse_collection')}</span>
-                                    </Link>
-                                    <Link href="/policy" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>{t('nav.policy')}</span>
-                                        <span className={styles.navSub}>{t('header.order_policies')}</span>
-                                    </Link>
-                                    <Link href="/contact" className={styles.mobileNavLink} onClick={closeAll}>
-                                        <span className={styles.navMain}>{t('nav.contact')}</span>
-                                        <span className={styles.navSub}>{t('header.contact_support')}</span>
-                                    </Link>
-                                </nav>
-                            </div>
-
-                            <div className={styles.mobileDivider} />
-
-                            <div className={styles.drawerSection}>
-                                <div className={styles.sectionLabel}>{t('common.my_account')}</div>
-                                <nav className={styles.mobileDashboardNav}>
-                                    <Link href="/myaccount/notifications" className={styles.dashboardLink} onClick={closeAll}>
-                                        <span className={styles.dashboardIcon}>🔔</span>
-                                        <span className={styles.dashboardText}>{t('account.notifications')}</span>
-                                        {unreadCount > 0 && <span className={styles.notifBadgeSmall}>{unreadCount}</span>}
-                                    </Link>
-                                    <Link href="/myaccount/my-orders" className={styles.dashboardLink} onClick={closeAll}>
-                                        <span className={styles.dashboardIcon}>📦</span>
-                                        <span className={styles.dashboardText}>{t('account.my_orders')}</span>
-                                    </Link>
-                                    <Link href="/myaccount/wishlist" className={styles.dashboardLink} onClick={closeAll}>
-                                        <span className={styles.dashboardIcon}>❤️</span>
-                                        <span className={styles.dashboardText}>{t('nav.most_selling')}</span>
-                                    </Link>
-                                    <Link href="/myaccount/support" className={styles.dashboardLink} onClick={closeAll}>
-                                        <span className={styles.dashboardIcon}>💬</span>
-                                        <span className={styles.dashboardText}>{t('account.support_tickets')}</span>
-                                        {supportUnread > 0 && <span className={styles.notifBadgeSmall}>{supportUnread}</span>}
-                                    </Link>
-                                    <Link href="/cart" className={styles.dashboardLink} onClick={closeAll}>
-                                        <span className={styles.dashboardIcon}>💼</span>
-                                        <span className={styles.dashboardText}>{t('cart.bag')}</span>
-                                        {cartCount > 0 && <span className={styles.notifBadgeSmall}>{cartCount}</span>}
-                                    </Link>
-                                </nav>
-                            </div>
-
-                            {(authUser?.role === "admin" || authUser?.role === "super_admin") && (
-                                <>
-                                    <div className={styles.mobileDivider} />
-                                    <div className={styles.drawerSection}>
-                                        <div className={styles.sectionLabel}>{t('header.management')}</div>
-                                        <nav className={styles.mobileDashboardNav}>
-                                            <Link href="/admin" className={styles.dashboardLink} onClick={closeAll}>
-                                                <span className={styles.dashboardIcon}>🛠️</span>
-                                                <span className={styles.dashboardText}>{t('header.admin_panel')}</span>
-                                            </Link>
-                                        </nav>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        <div className={styles.mobileDrawerFooter}>
-                            {authUser && (
-                                <button className={styles.luxeSignoutBtn} onClick={async () => { 
-                                    await fetch("/api/auth/logout", { method: "POST" }); 
-                                    clearAuth(); closeAll(); router.push("/"); 
-                                }}>
-                                    <span>{t('common.sign_out')}</span>
-                                    <span className={styles.signoutArrow}>→</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                <div className={styles.profileMenuFooter}>
+                  <Link
+                    href={authUser ? "/myaccount" : "/login"}
+                    className={styles.profileMenuFooterButton}
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    {authUser ? dashboardLabel : guestPrimaryLabel}
+                  </Link>
+                  {!authUser ? (
+                    <Link
+                      href="/signup"
+                      className={styles.profileMenuFooterSecondary}
+                      onClick={() => setProfileMenuOpen(false)}
+                    >
+                      {guestSecondaryLabel}
+                    </Link>
+                  ) : null}
                 </div>
-            )}
-        </>
-    );
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <Link href="/" className={styles.brand}>
+          <img src="/heart-logo.png" alt="JHD.LINE" className={styles.brandLogo} />
+        </Link>
+
+        <nav className={styles.nav}>
+          <Link href="/" className={styles.navLink}>
+            {t("nav.home")}
+          </Link>
+          <Link href="/policy" className={styles.navLink}>
+            {t("nav.policy")}
+          </Link>
+          <Link href="/contact" className={`${styles.navLink} ${styles.navLinkAccent}`}>
+            {t("nav.contact")}
+          </Link>
+          <Link href="/#about" className={styles.navLink}>
+            {aboutLabel}
+          </Link>
+        </nav>
+      </header>
+    </>
+  );
 }

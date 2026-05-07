@@ -1,11 +1,11 @@
 .page {
-    padding-block: 4rem;
+    padding-block: 2rem 4rem;
     min-height: 80vh;
 }
 
 .header {
     margin-bottom: 3.5rem;
-    border-bottom: 1px solid var(--border-soft);
+    border-bottom: 1px solid rgba(198, 40, 40, 0.08);
     padding-bottom: 2rem;
 }
 
@@ -38,9 +38,9 @@
 }
 
 .navCard {
-    background: #FFFFFF;
-    border: 1px solid var(--border-soft);
-    border-radius: 20px;
+    background: rgba(255, 251, 239, 0.94);
+    border: 1px solid rgba(198, 40, 40, 0.08);
+    border-radius: 28px;
     padding: 2.5rem;
     text-decoration: none;
     transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -49,6 +49,7 @@
     gap: 1.5rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 18px 38px rgba(120, 84, 18, 0.08);
 }
 
 .navCard:hover {
